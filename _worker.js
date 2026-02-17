@@ -223,8 +223,8 @@ async function serveCmsHtml(env) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Valor Wave CMS</title>
-  <link rel="stylesheet" href="/cms/admin.css" />
-  <link rel="stylesheet" href="/cms/themes.css" />
+  <link rel="stylesheet" href="/admin.css" />
+  <link rel="stylesheet" href="/themes.css" />
 </head>
 <body class="logged-out theme-original">
   <div id="login-screen">
@@ -236,7 +236,7 @@ async function serveCmsHtml(env) {
     <!-- Full CMS HTML is served by /cms/index.html via ASSETS -->
   </div>
   <div id="toast-container"></div>
-  <script src="/cms/cms-admin-v2.js" defer></script>
+  <script src="/cms-admin-v2.js" defer></script>
 </body>
 </html>`;
 
