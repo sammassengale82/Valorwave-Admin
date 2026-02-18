@@ -20,7 +20,7 @@
 // ASSETS (Cloudflare Pages / static assets)
 
 // OAuth config
-const OAUTH_REDIRECT = "https://valorwave-cms.sammassengale82.workers.dev/callback";
+const OAUTH_REDIRECT = "https://valorwaveentertainment.com/cms/callback";
 const OAUTH_SCOPES = "read:user";
 
 // ------------------------------------------------------------
