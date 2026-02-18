@@ -1,654 +1,165 @@
-// ============================================================
-// Valor Wave CMS 2.0 — Cloudflare Worker (FULL)
-// - Routing
-// - GitHub content backend
-// - Image upload to /images
-// - GitHub OAuth login
-// - Session cookies
-// - CMS API
-// - Visual CMS page get/save
-// ============================================================
-
-// Expected bindings in env:
-// GITHUB_OWNER
-// GITHUB_REPO
-// GITHUB_TOKEN
-// GITHUB_BRANCH (optional, defaults to main)
-// GITHUB_CLIENT_ID
-// GITHUB_CLIENT_SECRET
-// SESSION_SECRET
-// ASSETS (Cloudflare Pages / static assets)
-
-// OAuth config
-const OAUTH_REDIRECT = "https://valorwaveentertainment.com/cms/callback";
-const OAUTH_SCOPES = "read:user";
-
-// ------------------------------------------------------------
-// MAIN FETCH
-// ------------------------------------------------------------
-
 export default {
-  async fetch(request, env, ctx) {
-    try {
-      const url = new URL(request.url);
-      const { pathname } = url;
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const path = url.pathname;
 
-      // OAuth endpoints
-      if (pathname === "/cms/login") {
-        return handleLogin(request, env);
-      }
-      if (pathname === "/callback") {
-        return handleCallback(request, env);
-      }
+    // --- ROUTES -------------------------------------------------------------
 
-      // API routes
-      if (pathname.startsWith("/api/")) {
-        return handleApi(request, env, ctx);
-      }
-
-      // CMS UI
-      if (pathname === "/cms" || pathname === "/cms/") {
-        return serveCmsHtml(env);
-      }
-
-      // Static assets (Pages)
-      return env.ASSETS.fetch(request);
-    } catch (err) {
-      return jsonError("Unhandled error", 500, err);
+    if (path === "/cms/login") {
+      return handleLogin(env);
     }
+
+    if (path === "/cms/callback") {
+      return handleCallback(request, env);
+    }
+
+    if (path === "/cms/api/load") {
+      return requireAuth(request, env, () => loadSite(env));
+    }
+
+    if (path === "/cms/api/save") {
+      return requireAuth(request, env, () => saveSite(request, env));
+    }
+
+    // Fallback
+    return new Response("CMS Worker Active", { status: 200 });
   }
 };
 
-// ------------------------------------------------------------
-// JSON HELPERS
-// ------------------------------------------------------------
 
-function json(data, status = 200, headers = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      ...headers
-    }
-  });
-}
 
-function jsonError(message, status = 500, err = null) {
-  const body = { error: message };
-  if (err) body.details = String(err);
-  return json(body, status);
-}
+// ---------------------------------------------------------------------------
+// LOGIN → Redirect user to GitHub OAuth
+// ---------------------------------------------------------------------------
 
-// ------------------------------------------------------------
-// GITHUB HELPERS
-// ------------------------------------------------------------
-
-function githubApiUrl(env, path) {
-  const owner = env.GITHUB_OWNER;
-  const repo = env.GITHUB_REPO;
-  return `https://api.github.com/repos/${owner}/${repo}/${path}`;
-}
-
-async function githubRequest(env, path, init = {}) {
-  const token = env.GITHUB_TOKEN;
-  const headers = {
-    "Authorization": `Bearer ${token}`,
-    "Accept": "application/vnd.github+json",
-    "User-Agent": "valorwave-cms-worker",
-    ...init.headers
-  };
-
-  const res = await fetch(githubApiUrl(env, path), {
-    ...init,
-    headers
-  });
-
-  if (!res.ok) {
-    let err;
-    try {
-      err = await res.json();
-    } catch {
-      err = { message: `GitHub HTTP ${res.status}` };
-    }
-    throw new Error(`GitHub error: ${err.message || res.statusText}`);
-  }
-
-  const text = await res.text();
-  if (!text) return null;
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
-}
-
-function getBranch(env) {
-  return env.GITHUB_BRANCH || "main";
-}
-
-// ------------------------------------------------------------
-// GITHUB: LIST FILES UNDER content/
-// ------------------------------------------------------------
-
-async function listContentFiles(env) {
-  const branch = getBranch(env);
-  const tree = await githubRequest(
-    env,
-    `git/trees/${branch}?recursive=1`
-  );
-
-  if (!tree || !tree.tree) return [];
-
-  return tree.tree
-    .filter((item) => item.type === "blob" && item.path.startsWith("content/"))
-    .map((item) => ({ path: item.path }));
-}
-
-// ------------------------------------------------------------
-// GITHUB: READ FILE
-// ------------------------------------------------------------
-
-async function readContentFile(env, filePath) {
-  const branch = getBranch(env);
-  const data = await githubRequest(
-    env,
-    `contents/${encodeURIComponent(filePath)}?ref=${branch}`
-  );
-
-  if (!data || !data.content) {
-    throw new Error("File not found or invalid content");
-  }
-
-  const buff = Uint8Array.from(atob(data.content), (c) => c.charCodeAt(0));
-  return new TextDecoder().decode(buff);
-}
-
-// ------------------------------------------------------------
-// GITHUB: WRITE FILE (create or update)
-// ------------------------------------------------------------
-
-async function writeContentFile(env, filePath, content, message) {
-  const branch = getBranch(env);
-
-  let sha = undefined;
-  try {
-    const existing = await githubRequest(
-      env,
-      `contents/${encodeURIComponent(filePath)}?ref=${branch}`
-    );
-    sha = existing.sha;
-  } catch {
-    // new file
-  }
-
-  const body = {
-    message: message || `Update ${filePath} via CMS`,
-    content: btoa(unescape(encodeURIComponent(content))),
-    branch
-  };
-
-  if (sha) body.sha = sha;
-
-  const res = await githubRequest(
-    env,
-    `contents/${encodeURIComponent(filePath)}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    }
-  );
-
-  return res;
-}
-
-// ------------------------------------------------------------
-// GITHUB: CREATE FOLDER (via .gitkeep)
-// ------------------------------------------------------------
-
-async function createFolder(env, folderPath) {
-  const normalized = folderPath.replace(/\/+$/, "");
-  const gitkeepPath = `${normalized}/.gitkeep`;
-  return writeContentFile(env, gitkeepPath, "", `Create folder ${normalized} via CMS`);
-}
-
-// ------------------------------------------------------------
-// CMS HTML SHELL (fallback)
-// ------------------------------------------------------------
-
-async function serveCmsHtml(env) {
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Valor Wave CMS</title>
-  <link rel="stylesheet" href="/admin.css" />
-  <link rel="stylesheet" href="/themes.css" />
-</head>
-<body class="logged-out theme-original">
-  <div id="login-screen">
-    <img id="login-logo" src="/logo.png" alt="Valor Wave Logo" />
-    <h1>Valor Wave CMS</h1>
-    <a id="login-btn" href="/cms/login">Login with GitHub</a>
-  </div>
-  <div id="cms" style="display:none;">
-    <!-- Full CMS HTML is served by /cms/index.html via ASSETS -->
-  </div>
-  <div id="toast-container"></div>
-  <script src="/cms-admin-v2.js" defer></script>
-</body>
-</html>`;
-
-  return new Response(html, {
-    status: 200,
-    headers: { "Content-Type": "text/html; charset=utf-8" }
-  });
-}
-
-// ============================================================
-// AUTH / SESSION HELPERS (GitHub OAuth)
-// ============================================================
-
-function sign(value, secret) {
-  const encoder = new TextEncoder();
-  const key = encoder.encode(secret);
-  const data = encoder.encode(value);
-
-  return crypto.subtle
-    .importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"])
-    .then((cryptoKey) => crypto.subtle.sign("HMAC", cryptoKey, data))
-    .then((sig) => {
-      const b = new Uint8Array(sig);
-      return btoa(String.fromCharCode(...b));
-    });
-}
-
-async function createSessionCookie(env, username) {
-  const value = `user=${username}`;
-  const signature = await sign(value, env.SESSION_SECRET);
-  const cookie = `${value};sig=${signature}`;
-
-  return `cms_session=${cookie}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`;
-}
-
-async function readSessionCookie(request, env) {
-  const cookie = request.headers.get("Cookie") || "";
-  const match = cookie.match(/cms_session=([^;]+)/);
-  if (!match) return null;
-
-  const raw = match[1];
-  const parts = raw.split(";sig=");
-  if (parts.length !== 2) return null;
-
-  const value = parts[0];
-  const signature = parts[1];
-
-  const expected = await sign(value, env.SESSION_SECRET);
-  if (signature !== expected) return null;
-
-  const username = value.replace("user=", "");
-  return { login: username };
-}
-
-// ============================================================
-// GITHUB OAUTH FLOW
-// ============================================================
-
-async function handleLogin(request, env) {
+function handleLogin(env) {
   const state = crypto.randomUUID();
 
-  const url =
-    `https://github.com/login/oauth/authorize` +
-    `?client_id=${env.GITHUB_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT)}` +
-    `&scope=${encodeURIComponent(OAUTH_SCOPES)}` +
-    `&state=${state}`;
+  const redirect = new URL("https://github.com/login/oauth/authorize");
+  redirect.searchParams.set("client_id", env.GITHUB_CLIENT_ID);
+  redirect.searchParams.set("redirect_uri", env.CALLBACK_URL);
+  redirect.searchParams.set("scope", "repo");
+  redirect.searchParams.set("state", state);
 
-  return Response.redirect(url, 302);
+  return Response.redirect(redirect.toString(), 302);
 }
+
+
+
+// ---------------------------------------------------------------------------
+// CALLBACK → Exchange code for token → Set session cookie → Redirect to CMS UI
+// ---------------------------------------------------------------------------
 
 async function handleCallback(request, env) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
 
-  if (!code) return jsonError("Missing OAuth code", 400);
+  if (!code) {
+    return new Response("Missing OAuth code", { status: 400 });
+  }
 
-  const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+  // Exchange code for access token
+  const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
+    headers: { "Accept": "application/json" },
+    body: new URLSearchParams({
       client_id: env.GITHUB_CLIENT_ID,
       client_secret: env.GITHUB_CLIENT_SECRET,
-      code,
-      redirect_uri: OAUTH_REDIRECT
+      code
     })
   });
 
-  const tokenJson = await tokenRes.json();
-  if (!tokenJson.access_token) {
-    return jsonError("OAuth token exchange failed", 500);
+  const tokenData = await tokenResponse.json();
+
+  if (!tokenData.access_token) {
+    return new Response("OAuth token exchange failed", { status: 500 });
   }
 
-  const accessToken = tokenJson.access_token;
+  // Set session cookie
+  const sessionCookie = `session=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax`;
 
-  const userRes = await fetch("https://api.github.com/user", {
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "User-Agent": "valorwave-cms"
-    }
-  });
-
-  const userJson = await userRes.json();
-  if (!userJson.login) {
-    return jsonError("Failed to fetch GitHub user", 500);
-  }
-
-  const cookie = await createSessionCookie(env, userJson.login);
-
+  // Redirect to CMS UI
   return new Response(null, {
     status: 302,
     headers: {
-      "Location": "/cms",
-      "Set-Cookie": cookie
+      "Set-Cookie": sessionCookie,
+      "Location": "https://valorwave-cms.pages.dev"
     }
   });
 }
 
-// ============================================================
-// API ROUTER
-// ============================================================
 
-async function handleApi(request, env, ctx) {
-  const url = new URL(request.url);
-  const { pathname } = url;
-  const method = request.method.toUpperCase();
 
-  try {
-    // ---------- Visual CMS page endpoints ----------
-    if (pathname === "/api/page/get" && (method === "GET" || method === "POST")) {
-      return handlePageGet(request, env);
-    }
+// ---------------------------------------------------------------------------
+// AUTH MIDDLEWARE
+// ---------------------------------------------------------------------------
 
-    if (pathname === "/api/page/save" && method === "POST") {
-      return handlePageSave(request, env);
-    }
+async function requireAuth(request, env, handler) {
+  const cookie = request.headers.get("Cookie") || "";
+  const match = cookie.match(/session=([^;]+)/);
 
-    // ---------- Existing file endpoints ----------
-    if (pathname === "/api/files" && method === "GET") {
-      return handleListFiles(env);
-    }
-
-    if (pathname === "/api/read-file" && method === "POST") {
-      return handleReadFile(request, env);
-    }
-
-    if (pathname === "/api/write-file" && method === "POST") {
-      return handleWriteFile(request, env);
-    }
-
-    if (pathname === "/api/new-file" && method === "POST") {
-      return handleNewFile(request, env);
-    }
-
-    if (pathname === "/api/new-folder" && method === "POST") {
-      return handleNewFolder(request, env);
-    }
-
-    if (pathname === "/api/upload-image" && method === "POST") {
-      return handleUploadImage(request, env);
-    }
-
-    if (pathname === "/api/me" && method === "GET") {
-      return handleMe(request, env);
-    }
-
-    if (pathname === "/api/logout" && method === "POST") {
-      return handleLogout(request, env);
-    }
-
-    return jsonError("Not found", 404);
-  } catch (err) {
-    return jsonError("API error", 500, err);
+  if (!match) {
+    return new Response("Unauthorized", { status: 401 });
   }
+
+  request.githubToken = match[1];
+  return handler(request, env);
 }
 
-// ============================================================
-// Visual CMS: /api/page/get
-// - Loads a page (default: index.html) from the repo
-// - GET: uses default or ?pagePath=...
-// - POST: accepts { pagePath }
-// ============================================================
 
-async function handlePageGet(request, env) {
-  let pagePath = "index.html";
 
-  if (request.method.toUpperCase() === "GET") {
-    const url = new URL(request.url);
-    const qp = url.searchParams.get("pagePath");
-    if (qp) pagePath = qp;
-  } else {
-    try {
-      const body = await request.json();
-      if (body.pagePath) pagePath = body.pagePath;
-    } catch {
-      // ignore, use default
-    }
+// ---------------------------------------------------------------------------
+// LOAD SITE CONTENT
+// ---------------------------------------------------------------------------
+
+async function loadSite(env) {
+  const response = await env.GITHUB.fetch(
+    "/github/contents/index.html",
+    { method: "GET" }
+  );
+
+  if (!response.ok) {
+    return new Response("Failed to load site", { status: 500 });
   }
 
-  try {
-    const content = await readContentFile(env, pagePath);
-    return json({ ok: true, pagePath, content });
-  } catch (err) {
-    return jsonError("Failed to load page", 500, err);
-  }
+  return response;
 }
 
-// ============================================================
-// Visual CMS: /api/page/save
-// - Saves a page (default: index.html) back to the repo
-// - Body: { pagePath?, content, message? }
-// ============================================================
 
-async function handlePageSave(request, env) {
-  const body = await request.json().catch(() => null);
-  if (!body) return jsonError("Invalid JSON body", 400);
 
-  const pagePath = body.pagePath || "index.html";
-  const content = body.content;
-  const message = body.message || `Update ${pagePath} via Visual CMS`;
+// ---------------------------------------------------------------------------
+// SAVE SITE CONTENT → Commit to GitHub
+// ---------------------------------------------------------------------------
 
-  if (!content && content !== "") {
-    return jsonError("content required", 400);
-  }
-
-  try {
-    const res = await writeContentFile(env, pagePath, content, message);
-    return json({
-      ok: true,
-      pagePath,
-      commit: res.commit && res.commit.sha
-    });
-  } catch (err) {
-    return jsonError("Failed to save page", 500, err);
-  }
-}
-
-// ============================================================
-// /api/files
-// ============================================================
-
-async function handleListFiles(env) {
-  const files = await listContentFiles(env);
-  return json(files);
-}
-
-// ============================================================
-// /api/read-file
-// ============================================================
-
-async function handleReadFile(request, env) {
+async function saveSite(request, env) {
   const body = await request.json();
-  const filePath = body.filePath;
+  const newHtml = body.html;
 
-  if (!filePath) {
-    return jsonError("filePath required", 400);
-  }
+  // Get current file SHA
+  const current = await env.GITHUB.fetch(
+    "/github/contents/index.html",
+    { method: "GET" }
+  );
 
-  try {
-    const content = await readContentFile(env, filePath);
-    return json({ content });
-  } catch (err) {
-    return jsonError("Failed to read file", 500, err);
-  }
-}
+  const currentData = await current.json();
 
-// ============================================================
-// /api/write-file
-// ============================================================
-
-async function handleWriteFile(request, env) {
-  const body = await request.json();
-  const { filePath, content, message } = body;
-
-  if (!filePath) return jsonError("filePath required", 400);
-
-  try {
-    const res = await writeContentFile(env, filePath, content || "", message);
-    return json({ ok: true, commit: res.commit && res.commit.sha });
-  } catch (err) {
-    return jsonError("Failed to write file", 500, err);
-  }
-}
-
-// ============================================================
-// /api/new-file
-// ============================================================
-
-async function handleNewFile(request, env) {
-  const body = await request.json();
-  const { path, content, message } = body;
-
-  if (!path) return jsonError("path required", 400);
-
-  try {
-    const res = await writeContentFile(env, path, content || "", message);
-    return json({ ok: true, path, commit: res.commit && res.commit.sha });
-  } catch (err) {
-    return jsonError("Failed to create file", 500, err);
-  }
-}
-
-// ============================================================
-// /api/new-folder
-// ============================================================
-
-async function handleNewFolder(request, env) {
-  const body = await request.json();
-  const { folderPath } = body;
-
-  if (!folderPath) return jsonError("folderPath required", 400);
-
-  try {
-    const res = await createFolder(env, folderPath);
-    return json({ ok: true, folderPath, commit: res.commit && res.commit.sha });
-  } catch (err) {
-    return jsonError("Failed to create folder", 500, err);
-  }
-}
-
-// ============================================================
-// /api/me  (real session-based)
-// ============================================================
-
-async function handleMe(request, env) {
-  const session = await readSessionCookie(request, env);
-  if (!session) return json({ login: null });
-  return json({ login: session.login });
-}
-
-// ============================================================
-// /api/logout
-// ============================================================
-
-async function handleLogout(request, env) {
-  return new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Set-Cookie": "cms_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
-    }
-  });
-}
-
-// ============================================================
-// /api/upload-image  (repo root /images)
-// ============================================================
-
-async function handleUploadImage(request, env) {
-  const contentType = request.headers.get("Content-Type") || "";
-  if (!contentType.startsWith("multipart/form-data")) {
-    return jsonError("multipart/form-data required", 400);
-  }
-
-  const formData = await request.formData();
-  const file = formData.get("file");
-
-  if (!file || typeof file === "string") {
-    return jsonError("file field required", 400);
-  }
-
-  const arrayBuffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(arrayBuffer);
-
-  const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-  const ts = Date.now();
-  const repoPath = `images/${ts}-${safeName}`;
-
-  const base64Content = btoa(String.fromCharCode(...bytes));
-
-  const branch = getBranch(env);
-  let sha = undefined;
-
-  try {
-    const existing = await githubRequest(
-      env,
-      `contents/${encodeURIComponent(repoPath)}?ref=${branch}`
-    );
-    sha = existing.sha;
-  } catch {
-    // new file
-  }
-
-  const body = {
-    message: `Upload image ${repoPath} via CMS`,
-    content: base64Content,
-    branch
+  const commitBody = {
+    message: "CMS Update",
+    content: btoa(newHtml),
+    sha: currentData.sha
   };
-  if (sha) body.sha = sha;
 
-  const res = await githubRequest(
-    env,
-    `contents/${encodeURIComponent(repoPath)}`,
+  const commit = await env.GITHUB.fetch(
+    "/github/contents/index.html",
     {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      body: JSON.stringify(commitBody)
     }
   );
 
-  const publicUrl = `/images/${ts}-${safeName}`;
+  if (!commit.ok) {
+    return new Response("Failed to save site", { status: 500 });
+  }
 
-  return json({
-    ok: true,
-    original: publicUrl,
-    thumb: publicUrl,
-    webp: publicUrl,
-    optimized: publicUrl,
-    commit: res.commit && res.commit.sha
-  });
+  return new Response("OK", { status: 200 });
 }
