@@ -22,8 +22,9 @@ export default {
     }
 
     // Fallback
-    return new Response("CMS Worker Active", { status: 200 });
-  }
+    if (path === "/cms" || path === "/cms/") {
+  return Response.redirect("https://valorwave-cms.pages.dev", 302);
+}
 };
 
 
