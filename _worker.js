@@ -22,8 +22,15 @@ export default {
     }
 
     // Fallback
-    if (path === "/cms" || path === "/cms/") {
+   
+    // Fallback
+   // Redirect root CMS path to the CMS UI
+if (path === "/cms" || path === "/cms/") {
   return Response.redirect("https://valorwave-cms.pages.dev", 302);
+}
+
+// Fallback
+return new Response("CMS Worker Active", { status: 200 });
 }
 };
 
