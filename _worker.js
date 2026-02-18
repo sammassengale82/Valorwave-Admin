@@ -21,19 +21,14 @@ export default {
       return requireAuth(request, env, () => saveSite(request, env));
     }
 
-    // Fallback
-   
-    // Fallback
-   // Redirect root CMS path to the CMS UI
-if (path === "/cms" || path === "/cms/") {
-  return Response.redirect("https://valorwave-cms.pages.dev", 302);
-}
+    // Redirect root CMS path to the CMS UI
+    if (path === "/cms" || path === "/cms/") {
+      return Response.redirect("https://valorwave-cms.pages.dev", 302);
+    }
 
-// Fallback
-return new Response("CMS Worker Active", { status: 200 });
-}
+    return new Response("CMS Worker Active", { status: 200 });
+  }
 };
-
 
 
 // ---------------------------------------------------------------------------
@@ -53,7 +48,6 @@ function handleLogin(env) {
 }
 
 
-
 // ---------------------------------------------------------------------------
 // CALLBACK → Exchange code for token → Set session cookie → Redirect to CMS UI
 // ---------------------------------------------------------------------------
@@ -66,14 +60,14 @@ async function handleCallback(request, env) {
     return new Response("Missing OAuth code", { status: 400 });
   }
 
-  // Exchange code for access token
   const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
     headers: { "Accept": "application/json" },
     body: new URLSearchParams({
       client_id: env.GITHUB_CLIENT_ID,
       client_secret: env.GITHUB_CLIENT_SECRET,
-      code
+      code,
+      redirect_uri: env.CALLBACK_URL
     })
   });
 
@@ -83,10 +77,8 @@ async function handleCallback(request, env) {
     return new Response("OAuth token exchange failed", { status: 500 });
   }
 
-  // Set session cookie
   const sessionCookie = `session=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax`;
 
-  // Redirect to CMS UI
   return new Response(null, {
     status: 302,
     headers: {
@@ -95,7 +87,6 @@ async function handleCallback(request, env) {
     }
   });
 }
-
 
 
 // ---------------------------------------------------------------------------
@@ -115,14 +106,13 @@ async function requireAuth(request, env, handler) {
 }
 
 
-
 // ---------------------------------------------------------------------------
 // LOAD SITE CONTENT
 // ---------------------------------------------------------------------------
 
 async function loadSite(env) {
   const response = await env.GITHUB.fetch(
-    "/github/contents/index.html",
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
     { method: "GET" }
   );
 
@@ -134,7 +124,6 @@ async function loadSite(env) {
 }
 
 
-
 // ---------------------------------------------------------------------------
 // SAVE SITE CONTENT → Commit to GitHub
 // ---------------------------------------------------------------------------
@@ -143,9 +132,8 @@ async function saveSite(request, env) {
   const body = await request.json();
   const newHtml = body.html;
 
-  // Get current file SHA
   const current = await env.GITHUB.fetch(
-    "/github/contents/index.html",
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
     { method: "GET" }
   );
 
@@ -158,7 +146,7 @@ async function saveSite(request, env) {
   };
 
   const commit = await env.GITHUB.fetch(
-    "/github/contents/index.html",
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
     {
       method: "PUT",
       body: JSON.stringify(commitBody)
