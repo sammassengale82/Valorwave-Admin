@@ -3,52 +3,41 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // -----------------------------------------------------------------------
-    // PUBLIC WEBSITE (proxy to your main Pages site)
-    // -----------------------------------------------------------------------
-    if (!path.startsWith("/cms")) {
-      return fetch("https://valorwaveentertainment.pages.dev" + path);
-    }
-
-    // -----------------------------------------------------------------------
-    // CMS ROUTES
-    // -----------------------------------------------------------------------
+    // ------------------------------------------------------------
+    // AUTH + API ROUTES (no /cms prefix now)
+    // ------------------------------------------------------------
 
     // GitHub OAuth login
-    if (path === "/cms/login") {
+    if (path === "/login") {
       return handleLogin(env);
     }
 
     // OAuth callback
-    if (path === "/cms/callback") {
+    if (path === "/callback") {
       return handleCallback(request, env);
     }
 
     // API: Load site content
-    if (path === "/cms/api/load") {
+    if (path === "/api/load") {
       return requireAuth(request, env, () => loadSite(env));
     }
 
     // API: Save site content
-    if (path === "/cms/api/save") {
+    if (path === "/api/save") {
       return requireAuth(request, env, () => saveSite(request, env));
     }
 
-    // -----------------------------------------------------------------------
-    // CMS UI STATIC FILES (proxy to CMS Pages project)
-    // -----------------------------------------------------------------------
-    if (path.startsWith("/cms/")) {
-      const proxiedPath = path.replace("/cms", "");
-      return fetch("https://valorwave-cms-ui.pages.dev" + proxiedPath);
-    }
-
-    return new Response("CMS Worker Active", { status: 200 });
+    // ------------------------------------------------------------
+    // CMS UI STATIC FILES → proxy to CMS Pages project
+    // ------------------------------------------------------------
+    // Everything else (/, /cms-admin-v2.js, /admin.css, etc.)
+    return fetch("https://valorwave-cms-ui.pages.dev" + path);
   }
 };
 
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
 // LOGIN → Redirect user to GitHub OAuth
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
 function handleLogin(env) {
   const state = crypto.randomUUID();
 
@@ -61,9 +50,9 @@ function handleLogin(env) {
   return Response.redirect(redirect.toString(), 302);
 }
 
-// ---------------------------------------------------------------------------
-// CALLBACK → Exchange code for token → Set session cookie → Redirect to CMS UI
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
+// CALLBACK → Exchange code → Set cookie → Redirect to CMS UI
+// ------------------------------------------------------------
 async function handleCallback(request, env) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
@@ -95,14 +84,14 @@ async function handleCallback(request, env) {
     status: 302,
     headers: {
       "Set-Cookie": sessionCookie,
-      "Location": "https://valorwaveentertainment.com/cms/"
+      "Location": "https://cms.valorwaveentertainment.com/"
     }
   });
 }
 
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
 // AUTH MIDDLEWARE
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
 async function requireAuth(request, env, handler) {
   const cookie = request.headers.get("Cookie") || "";
   const match = cookie.match(/session=([^;]+)/);
@@ -115,9 +104,9 @@ async function requireAuth(request, env, handler) {
   return handler(request, env);
 }
 
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
 // LOAD SITE CONTENT
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
 async function loadSite(env) {
   const response = await env.GITHUB.fetch(
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
@@ -131,9 +120,9 @@ async function loadSite(env) {
   return response;
 }
 
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
 // SAVE SITE CONTENT → Commit to GitHub
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------
 async function saveSite(request, env) {
   const body = await request.json();
   const newHtml = body.html;
