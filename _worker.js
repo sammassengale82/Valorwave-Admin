@@ -96,7 +96,7 @@ async function handleCallback(request, env) {
     return new Response("OAuth token exchange failed", { status: 500 });
   }
 
-  const sessionCookie = `session=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax`;
+  const sessionCookie = `session=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=None`;
 
   return new Response(null, {
     status: 302,
