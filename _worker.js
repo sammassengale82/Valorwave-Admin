@@ -5,25 +5,29 @@ export default {
 
     // --- ROUTES -------------------------------------------------------------
 
+    // GitHub OAuth login
     if (path === "/cms/login") {
       return handleLogin(env);
     }
 
+    // OAuth callback
     if (path === "/cms/callback") {
       return handleCallback(request, env);
     }
 
+    // API: Load site content
     if (path === "/cms/api/load") {
       return requireAuth(request, env, () => loadSite(env));
     }
 
+    // API: Save site content
     if (path === "/cms/api/save") {
       return requireAuth(request, env, () => saveSite(request, env));
     }
 
-    // Redirect root CMS path to the CMS UI
+    // Redirect /cms → CMS UI on the SAME domain
     if (path === "/cms" || path === "/cms/") {
-      return Response.redirect("/cms/", 302);
+      return Response.redirect("https://valorwaveentertainment.com/cms/", 302);
     }
 
     return new Response("CMS Worker Active", { status: 200 });
@@ -83,7 +87,7 @@ async function handleCallback(request, env) {
     status: 302,
     headers: {
       "Set-Cookie": sessionCookie,
-      "Location": "https://valorwave-cms.pages.dev"
+      "Location": "https://valorwaveentertainment.com/cms/"
     }
   });
 }
