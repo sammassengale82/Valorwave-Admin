@@ -19,7 +19,7 @@ export default {
 
     // API: Who am I?
     if (path === "/api/me") {
-      return handleMe(request);
+      return requireAuth(request, env, () => handleMe(request));
     }
 
     // API: Logout
@@ -96,7 +96,9 @@ async function handleCallback(request, env) {
     return new Response("OAuth token exchange failed", { status: 500 });
   }
 
-  const sessionCookie = `session=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=None`;
+  // IMPORTANT: SameSite=None for OAuth redirects
+  const sessionCookie =
+    `session=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=None`;
 
   return new Response(null, {
     status: 302,
@@ -113,14 +115,7 @@ async function handleCallback(request, env) {
 // /api/me → Validate session + return GitHub user
 // ------------------------------------------------------------
 async function handleMe(request) {
-  const cookie = request.headers.get("Cookie") || "";
-  const match = cookie.match(/session=([^;]+)/);
-
-  if (!match) {
-    return json({ error: "Not logged in" }, 401);
-  }
-
-  const token = match[1];
+  const token = request.githubToken;
 
   const userRes = await fetch("https://api.github.com/user", {
     headers: { Authorization: `token ${token}` }
@@ -143,7 +138,7 @@ function handleLogout() {
   return new Response(null, {
     status: 302,
     headers: {
-      "Set-Cookie": "session=; Path=/; HttpOnly; Secure; Max-Age=0",
+      "Set-Cookie": "session=; Path=/; HttpOnly; Secure; Max-Age=0; SameSite=None",
       "Location": "https://cms.valorwaveentertainment.com/login"
     }
   });
