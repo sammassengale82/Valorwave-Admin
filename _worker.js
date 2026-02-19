@@ -25,11 +25,15 @@ export default {
       return requireAuth(request, env, () => saveSite(request, env));
     }
 
-    // Redirect /cms → CMS UI on the SAME domain
-    if (path === "/cms" || path === "/cms/") {
-      return fetch("https://valorwave-cms.pages.dev" + path.replace("/cms", ""));
+    // --- CMS UI PROXY -------------------------------------------------------
+    // Serve ALL CMS UI files from the CMS Pages project
+    // IMPORTANT: strip the /cms prefix before fetching from Pages
+    if (path.startsWith("/cms/")) {
+      const proxiedPath = path.replace("/cms", ""); 
+      return fetch("https://valorwave-cms.pages.dev" + proxiedPath);
     }
 
+    // Default test response
     return new Response("CMS Worker Active", { status: 200 });
   }
 };
