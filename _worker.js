@@ -3,7 +3,16 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // --- ROUTES -------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // PUBLIC WEBSITE (proxy to your main Pages site)
+    // -----------------------------------------------------------------------
+    if (!path.startsWith("/cms")) {
+      return fetch("https://valorwaveentertainment.pages.dev" + path);
+    }
+
+    // -----------------------------------------------------------------------
+    // CMS ROUTES
+    // -----------------------------------------------------------------------
 
     // GitHub OAuth login
     if (path === "/cms/login") {
@@ -25,24 +34,21 @@ export default {
       return requireAuth(request, env, () => saveSite(request, env));
     }
 
-    // --- CMS UI PROXY -------------------------------------------------------
-    // Serve ALL CMS UI files from the CMS Pages project
-    // IMPORTANT: strip the /cms prefix before fetching from Pages
+    // -----------------------------------------------------------------------
+    // CMS UI STATIC FILES (proxy to CMS Pages project)
+    // -----------------------------------------------------------------------
     if (path.startsWith("/cms/")) {
-      const proxiedPath = path.replace("/cms", ""); 
-      return fetch("https://valorwave-cms.pages.dev" + proxiedPath);
+      const proxiedPath = path.replace("/cms", "");
+      return fetch("https://valorwave-cms-ui.pages.dev" + proxiedPath);
     }
 
-    // Default test response
     return new Response("CMS Worker Active", { status: 200 });
   }
 };
 
-
 // ---------------------------------------------------------------------------
 // LOGIN → Redirect user to GitHub OAuth
 // ---------------------------------------------------------------------------
-
 function handleLogin(env) {
   const state = crypto.randomUUID();
 
@@ -55,11 +61,9 @@ function handleLogin(env) {
   return Response.redirect(redirect.toString(), 302);
 }
 
-
 // ---------------------------------------------------------------------------
 // CALLBACK → Exchange code for token → Set session cookie → Redirect to CMS UI
 // ---------------------------------------------------------------------------
-
 async function handleCallback(request, env) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
@@ -96,11 +100,9 @@ async function handleCallback(request, env) {
   });
 }
 
-
 // ---------------------------------------------------------------------------
 // AUTH MIDDLEWARE
 // ---------------------------------------------------------------------------
-
 async function requireAuth(request, env, handler) {
   const cookie = request.headers.get("Cookie") || "";
   const match = cookie.match(/session=([^;]+)/);
@@ -113,11 +115,9 @@ async function requireAuth(request, env, handler) {
   return handler(request, env);
 }
 
-
 // ---------------------------------------------------------------------------
 // LOAD SITE CONTENT
 // ---------------------------------------------------------------------------
-
 async function loadSite(env) {
   const response = await env.GITHUB.fetch(
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
@@ -131,11 +131,9 @@ async function loadSite(env) {
   return response;
 }
 
-
 // ---------------------------------------------------------------------------
 // SAVE SITE CONTENT → Commit to GitHub
 // ---------------------------------------------------------------------------
-
 async function saveSite(request, env) {
   const body = await request.json();
   const newHtml = body.html;
