@@ -60,7 +60,7 @@ function handleLogin(env) {
   const redirect = new URL("https://github.com/login/oauth/authorize");
   redirect.searchParams.set("client_id", env.GITHUB_CLIENT_ID);
   redirect.searchParams.set("redirect_uri", env.CALLBACK_URL);
-  redirect.searchParams.set("scope", "repo");
+  redirect.searchParams.set("scope", "repo read:user user:email");
   redirect.searchParams.set("state", state);
 
   return Response.redirect(redirect.toString(), 302);
@@ -118,7 +118,7 @@ async function handleMe(request) {
   const token = request.githubToken;
 
   const userRes = await fetch("https://api.github.com/user", {
-    headers: { Authorization: `token ${token}` }
+    headers: { Authorization: `Bearer ${token}` }
   });
 
   if (!userRes.ok) {
