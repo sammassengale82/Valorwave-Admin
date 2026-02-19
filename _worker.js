@@ -7,53 +7,21 @@ export default {
     // AUTH + API ROUTES
     // ------------------------------------------------------------
 
-    if (path === "/login") {
-      return handleLogin(env);
-    }
-
-    if (path === "/callback") {
-      return handleCallback(request, env);
-    }
-
-    if (path === "/api/me") {
-      return requireAuth(request, env, () => handleMe(request));
-    }
-
-    if (path === "/api/logout") {
-      return handleLogout();
-    }
-
-    if (path === "/api/load") {
-      return requireAuth(request, env, () => loadSite(env));
-    }
-
-    if (path === "/api/save") {
-      return requireAuth(request, env, () => saveSite(request, env));
-    }
-
-    if (path === "/api/upload-image") {
-      return requireAuth(request, env, () => uploadImage(request, env));
-    }
+    if (path === "/login") return handleLogin(env);
+    if (path === "/callback") return handleCallback(request, env);
+    if (path === "/api/me") return requireAuth(request, env, () => handleMe(request));
+    if (path === "/api/logout") return handleLogout();
+    if (path === "/api/load") return requireAuth(request, env, () => loadSite(env));
+    if (path === "/api/save") return requireAuth(request, env, () => saveSite(request, env));
+    if (path === "/api/upload-image") return requireAuth(request, env, () => uploadImage(request, env));
 
     // ------------------------------------------------------------
-    // STATIC CMS FILES (served from GitHub repo root)
+    // STATIC CMS FILES
     // ------------------------------------------------------------
-
-    const staticFiles = [
-      "admin.css",
-      "cms-admin-v2.js",
-      "themes.css",
-      "logo.png",
-      "favicon.ico",
-      "config.yml"
-    ];
 
     if (path.startsWith("/cms/")) {
       const filename = path.replace("/cms/", "");
-
-      if (staticFiles.includes(filename)) {
-        return serveStaticFromGitHub(filename, env);
-      }
+      return serveStatic(filename, env);
     }
 
     // ------------------------------------------------------------
@@ -66,7 +34,7 @@ export default {
 // ------------------------------------------------------------
 // STATIC FILE SERVING FROM GITHUB
 // ------------------------------------------------------------
-async function serveStaticFromGitHub(filename, env) {
+async function serveStatic(filename, env) {
   const res = await env.GITHUB.fetch(
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/${filename}`,
     { method: "GET" }
@@ -77,16 +45,18 @@ async function serveStaticFromGitHub(filename, env) {
   }
 
   const data = await res.json();
-  const content = atob(data.content);
 
-  let type = "text/plain";
+  // GitHub returns base64 content
+  const binary = Uint8Array.from(atob(data.content), c => c.charCodeAt(0));
+
+  let type = "application/octet-stream";
   if (filename.endsWith(".css")) type = "text/css";
   if (filename.endsWith(".js")) type = "application/javascript";
   if (filename.endsWith(".png")) type = "image/png";
   if (filename.endsWith(".ico")) type = "image/x-icon";
   if (filename.endsWith(".yml") || filename.endsWith(".yaml")) type = "text/yaml";
 
-  return new Response(content, {
+  return new Response(binary, {
     headers: { "Content-Type": type }
   });
 }
@@ -113,9 +83,7 @@ async function handleCallback(request, env) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
 
-  if (!code) {
-    return new Response("Missing OAuth code", { status: 400 });
-  }
+  if (!code) return new Response("Missing OAuth code", { status: 400 });
 
   const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
@@ -129,10 +97,7 @@ async function handleCallback(request, env) {
   });
 
   const tokenData = await tokenResponse.json();
-
-  if (!tokenData.access_token) {
-    return new Response("OAuth token exchange failed", { status: 500 });
-  }
+  if (!tokenData.access_token) return new Response("OAuth token exchange failed", { status: 500 });
 
   const sessionCookie =
     `session=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=None`;
@@ -156,9 +121,7 @@ async function handleMe(request) {
     headers: { Authorization: `Bearer ${token}` }
   });
 
-  if (!userRes.ok) {
-    return json({ error: "Invalid token" }, 401);
-  }
+  if (!userRes.ok) return json({ error: "Invalid token" }, 401);
 
   const user = await userRes.json();
   return json(user);
@@ -184,9 +147,7 @@ async function requireAuth(request, env, handler) {
   const cookie = request.headers.get("Cookie") || "";
   const match = cookie.match(/session=([^;]+)/);
 
-  if (!match) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  if (!match) return json({ error: "Unauthorized" }, 401);
 
   request.githubToken = match[1];
   return handler(request, env);
@@ -201,9 +162,7 @@ async function loadSite(env) {
     { method: "GET" }
   );
 
-  if (!response.ok) {
-    return json({ error: "Failed to load site" }, 500);
-  }
+  if (!response.ok) return json({ error: "Failed to load site" }, 500);
 
   return response;
 }
@@ -236,9 +195,7 @@ async function saveSite(request, env) {
     }
   );
 
-  if (!commit.ok) {
-    return json({ error: "Failed to save site" }, 500);
-  }
+  if (!commit.ok) return json({ error: "Failed to save site" }, 500);
 
   return json({ ok: true });
 }
@@ -250,9 +207,7 @@ async function uploadImage(request, env) {
   const form = await request.formData();
   const file = form.get("file");
 
-  if (!file) {
-    return json({ error: "No file uploaded" }, 400);
-  }
+  if (!file) return json({ error: "No file uploaded" }, 400);
 
   const arrayBuffer = await file.arrayBuffer();
   const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
@@ -270,9 +225,7 @@ async function uploadImage(request, env) {
     }
   );
 
-  if (!upload.ok) {
-    return json({ error: "Upload failed" }, 500);
-  }
+  if (!upload.ok) return json({ error: "Upload failed" }, 500);
 
   const data = await upload.json();
 
