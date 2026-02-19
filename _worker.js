@@ -27,8 +27,8 @@ export default {
 
     // Redirect /cms → CMS UI on the SAME domain
     if (path === "/cms" || path === "/cms/") {
-      return fetch("https://valorwave-cms.pages.dev/");
-}
+      return fetch("https://valorwave-cms.pages.dev" + path.replace("/cms", ""));
+    }
 
     return new Response("CMS Worker Active", { status: 200 });
   }
