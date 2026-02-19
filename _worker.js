@@ -23,7 +23,7 @@ export default {
 
     // Redirect root CMS path to the CMS UI
     if (path === "/cms" || path === "/cms/") {
-      return Response.redirect("https://valorwave-cms.pages.dev", 302);
+      return Response.redirect("/cms/", 302);
     }
 
     return new Response("CMS Worker Active", { status: 200 });
