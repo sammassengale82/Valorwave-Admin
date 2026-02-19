@@ -4,7 +4,7 @@ export default {
     const path = url.pathname;
 
     // ------------------------------------------------------------
-    // AUTH + API ROUTES (no /cms prefix now)
+    // AUTH + API ROUTES
     // ------------------------------------------------------------
 
     // GitHub OAuth login
@@ -17,6 +17,16 @@ export default {
       return handleCallback(request, env);
     }
 
+    // API: Who am I?
+    if (path === "/api/me") {
+      return handleMe(request);
+    }
+
+    // API: Logout
+    if (path === "/api/logout") {
+      return handleLogout();
+    }
+
     // API: Load site content
     if (path === "/api/load") {
       return requireAuth(request, env, () => loadSite(env));
@@ -27,13 +37,19 @@ export default {
       return requireAuth(request, env, () => saveSite(request, env));
     }
 
+    // API: Upload image
+    if (path === "/api/upload-image") {
+      return requireAuth(request, env, () => uploadImage(request, env));
+    }
+
     // ------------------------------------------------------------
     // CMS UI STATIC FILES → proxy to CMS Pages project
     // ------------------------------------------------------------
-    // Everything else (/, /cms-admin-v2.js, /admin.css, etc.)
     return fetch("https://valorwave-cms-ui.pages.dev" + path);
   }
 };
+
+
 
 // ------------------------------------------------------------
 // LOGIN → Redirect user to GitHub OAuth
@@ -49,6 +65,8 @@ function handleLogin(env) {
 
   return Response.redirect(redirect.toString(), 302);
 }
+
+
 
 // ------------------------------------------------------------
 // CALLBACK → Exchange code → Set cookie → Redirect to CMS UI
@@ -89,6 +107,50 @@ async function handleCallback(request, env) {
   });
 }
 
+
+
+// ------------------------------------------------------------
+// /api/me → Validate session + return GitHub user
+// ------------------------------------------------------------
+async function handleMe(request) {
+  const cookie = request.headers.get("Cookie") || "";
+  const match = cookie.match(/session=([^;]+)/);
+
+  if (!match) {
+    return json({ error: "Not logged in" }, 401);
+  }
+
+  const token = match[1];
+
+  const userRes = await fetch("https://api.github.com/user", {
+    headers: { Authorization: `token ${token}` }
+  });
+
+  if (!userRes.ok) {
+    return json({ error: "Invalid token" }, 401);
+  }
+
+  const user = await userRes.json();
+  return json(user);
+}
+
+
+
+// ------------------------------------------------------------
+// /api/logout → Clear cookie
+// ------------------------------------------------------------
+function handleLogout() {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      "Set-Cookie": "session=; Path=/; HttpOnly; Secure; Max-Age=0",
+      "Location": "https://cms.valorwaveentertainment.com/login"
+    }
+  });
+}
+
+
+
 // ------------------------------------------------------------
 // AUTH MIDDLEWARE
 // ------------------------------------------------------------
@@ -97,12 +159,14 @@ async function requireAuth(request, env, handler) {
   const match = cookie.match(/session=([^;]+)/);
 
   if (!match) {
-    return new Response("Unauthorized", { status: 401 });
+    return json({ error: "Unauthorized" }, 401);
   }
 
   request.githubToken = match[1];
   return handler(request, env);
 }
+
+
 
 // ------------------------------------------------------------
 // LOAD SITE CONTENT
@@ -114,18 +178,20 @@ async function loadSite(env) {
   );
 
   if (!response.ok) {
-    return new Response("Failed to load site", { status: 500 });
+    return json({ error: "Failed to load site" }, 500);
   }
 
   return response;
 }
+
+
 
 // ------------------------------------------------------------
 // SAVE SITE CONTENT → Commit to GitHub
 // ------------------------------------------------------------
 async function saveSite(request, env) {
   const body = await request.json();
-  const newHtml = body.html;
+  const newHtml = body.content || body.html;
 
   const current = await env.GITHUB.fetch(
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
@@ -135,7 +201,7 @@ async function saveSite(request, env) {
   const currentData = await current.json();
 
   const commitBody = {
-    message: "CMS Update",
+    message: body.message || "CMS Update",
     content: btoa(newHtml),
     sha: currentData.sha
   };
@@ -149,8 +215,62 @@ async function saveSite(request, env) {
   );
 
   if (!commit.ok) {
-    return new Response("Failed to save site", { status: 500 });
+    return json({ error: "Failed to save site" }, 500);
   }
 
-  return new Response("OK", { status: 200 });
+  return json({ ok: true });
+}
+
+
+
+// ------------------------------------------------------------
+// IMAGE UPLOAD HANDLER
+// ------------------------------------------------------------
+async function uploadImage(request, env) {
+  const form = await request.formData();
+  const file = form.get("file");
+
+  if (!file) {
+    return json({ error: "No file uploaded" }, 400);
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+  const filename = `uploads/${Date.now()}-${file.name}`;
+
+  const upload = await env.GITHUB.fetch(
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/${filename}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        message: "Upload image",
+        content: base64
+      })
+    }
+  );
+
+  if (!upload.ok) {
+    return json({ error: "Upload failed" }, 500);
+  }
+
+  const data = await upload.json();
+
+  return json({
+    original: data.content.download_url,
+    thumb: data.content.download_url,
+    optimized: data.content.download_url
+  });
+}
+
+
+
+// ------------------------------------------------------------
+// JSON HELPER
+// ------------------------------------------------------------
+function json(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { "Content-Type": "application/json" }
+  });
 }
