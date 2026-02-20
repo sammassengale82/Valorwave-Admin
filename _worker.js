@@ -4,7 +4,7 @@ export default {
     const path = url.pathname;
 
     // ------------------------------------------------------------
-    // AUTH + API ROUTES (unchanged)
+    // AUTH + API ROUTES (UNCHANGED)
     // ------------------------------------------------------------
 
     if (path === "/login") return handleLogin(env);
@@ -16,12 +16,16 @@ export default {
     if (path === "/api/upload-image") return requireAuth(request, env, () => uploadImage(request, env));
 
     // ------------------------------------------------------------
-    // STATIC CMS FILES (served from Valorwave-CMS repo)
+    // STATIC CMS FILES (MATCH ALL CMS ASSETS)
     // ------------------------------------------------------------
-
-    if (path.startsWith("/cms-") || path === "/cms-admin-v2.css" || path === "/themes.css" ||
-        path === "/logo.png" || path === "/favicon.ico" || path === "/config.yml") {
-
+    if (
+      path.endsWith(".css") ||
+      path.endsWith(".js") ||
+      path.endsWith(".png") ||
+      path.endsWith(".ico") ||
+      path.endsWith(".yml") ||
+      path.endsWith(".yaml")
+    ) {
       const filename = path.replace("/", "");
       return serveCmsStatic(filename, env);
     }
@@ -36,7 +40,7 @@ export default {
 
 
 // ------------------------------------------------------------
-// SERVE STATIC CMS FILES FROM Valorwave-CMS REPO
+// SERVE STATIC CMS FILES FROM valorwave-cms REPO
 // ------------------------------------------------------------
 async function serveCmsStatic(filename, env) {
   const res = await env.GITHUB.fetch(
@@ -50,7 +54,11 @@ async function serveCmsStatic(filename, env) {
 
   const data = await res.json();
 
-  // Decode base64 safely for binary files
+  // Guard: ensure GitHub returned actual file content
+  if (!data.content) {
+    return new Response("Invalid file", { status: 500 });
+  }
+
   const binary = Uint8Array.from(atob(data.content), c => c.charCodeAt(0));
 
   let type = "application/octet-stream";
@@ -68,7 +76,7 @@ async function serveCmsStatic(filename, env) {
 
 
 // ------------------------------------------------------------
-// LOGIN → Redirect user to GitHub OAuth
+// LOGIN → Redirect user to GitHub OAuth (UNCHANGED)
 // ------------------------------------------------------------
 function handleLogin(env) {
   const state = crypto.randomUUID();
@@ -85,7 +93,7 @@ function handleLogin(env) {
 
 
 // ------------------------------------------------------------
-// CALLBACK → Exchange code → Set cookie → Redirect to CMS UI
+// CALLBACK → Exchange code → Set cookie → Redirect to CMS UI (UNCHANGED)
 // ------------------------------------------------------------
 async function handleCallback(request, env) {
   const url = new URL(request.url);
@@ -122,7 +130,7 @@ async function handleCallback(request, env) {
 
 
 // ------------------------------------------------------------
-// /api/me → Validate session + return GitHub user
+// /api/me → Validate session + return GitHub user (UNCHANGED)
 // ------------------------------------------------------------
 async function handleMe(request) {
   const token = request.githubToken;
@@ -140,7 +148,7 @@ async function handleMe(request) {
 
 
 // ------------------------------------------------------------
-// /api/logout → Clear cookie
+// /api/logout → Clear cookie (UNCHANGED)
 // ------------------------------------------------------------
 function handleLogout() {
   return new Response(null, {
@@ -155,7 +163,7 @@ function handleLogout() {
 
 
 // ------------------------------------------------------------
-// AUTH MIDDLEWARE
+// AUTH MIDDLEWARE (UNCHANGED)
 // ------------------------------------------------------------
 async function requireAuth(request, env, handler) {
   const cookie = request.headers.get("Cookie") || "";
