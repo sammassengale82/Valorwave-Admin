@@ -4,7 +4,7 @@ export default {
     const path = url.pathname;
 
     // ------------------------------------------------------------
-    // AUTH + API ROUTES
+    // AUTH + API ROUTES (unchanged)
     // ------------------------------------------------------------
 
     if (path === "/login") return handleLogin(env);
@@ -16,12 +16,14 @@ export default {
     if (path === "/api/upload-image") return requireAuth(request, env, () => uploadImage(request, env));
 
     // ------------------------------------------------------------
-    // STATIC CMS FILES
+    // STATIC CMS FILES (served from Valorwave-CMS repo)
     // ------------------------------------------------------------
 
-    if (path.startsWith("/cms/")) {
-      const filename = path.replace("/cms/", "");
-      return serveStatic(filename, env);
+    if (path.startsWith("/cms-") || path === "/cms-admin-v2.css" || path === "/themes.css" ||
+        path === "/logo.png" || path === "/favicon.ico" || path === "/config.yml") {
+
+      const filename = path.replace("/", "");
+      return serveCmsStatic(filename, env);
     }
 
     // ------------------------------------------------------------
@@ -31,12 +33,14 @@ export default {
   }
 };
 
+
+
 // ------------------------------------------------------------
-// STATIC FILE SERVING FROM GITHUB
+// SERVE STATIC CMS FILES FROM Valorwave-CMS REPO
 // ------------------------------------------------------------
-async function serveStatic(filename, env) {
+async function serveCmsStatic(filename, env) {
   const res = await env.GITHUB.fetch(
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/${filename}`,
+    `/repos/sammassengale82/Valorwave-CMS/contents/${filename}?ref=main`,
     { method: "GET" }
   );
 
@@ -46,7 +50,7 @@ async function serveStatic(filename, env) {
 
   const data = await res.json();
 
-  // GitHub returns base64 content
+  // Decode base64 safely for binary files
   const binary = Uint8Array.from(atob(data.content), c => c.charCodeAt(0));
 
   let type = "application/octet-stream";
@@ -60,6 +64,8 @@ async function serveStatic(filename, env) {
     headers: { "Content-Type": type }
   });
 }
+
+
 
 // ------------------------------------------------------------
 // LOGIN → Redirect user to GitHub OAuth
@@ -75,6 +81,8 @@ function handleLogin(env) {
 
   return Response.redirect(redirect.toString(), 302);
 }
+
+
 
 // ------------------------------------------------------------
 // CALLBACK → Exchange code → Set cookie → Redirect to CMS UI
@@ -111,6 +119,8 @@ async function handleCallback(request, env) {
   });
 }
 
+
+
 // ------------------------------------------------------------
 // /api/me → Validate session + return GitHub user
 // ------------------------------------------------------------
@@ -127,6 +137,8 @@ async function handleMe(request) {
   return json(user);
 }
 
+
+
 // ------------------------------------------------------------
 // /api/logout → Clear cookie
 // ------------------------------------------------------------
@@ -139,6 +151,8 @@ function handleLogout() {
     }
   });
 }
+
+
 
 // ------------------------------------------------------------
 // AUTH MIDDLEWARE
@@ -153,12 +167,14 @@ async function requireAuth(request, env, handler) {
   return handler(request, env);
 }
 
+
+
 // ------------------------------------------------------------
-// LOAD SITE CONTENT
+// LOAD SITE CONTENT (from valorwaveentertainment repo)
 // ------------------------------------------------------------
 async function loadSite(env) {
   const response = await env.GITHUB.fetch(
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
+    `/repos/sammassengale82/valorwaveentertainment/contents/index.html?ref=main`,
     { method: "GET" }
   );
 
@@ -167,15 +183,17 @@ async function loadSite(env) {
   return response;
 }
 
+
+
 // ------------------------------------------------------------
-// SAVE SITE CONTENT → Commit to GitHub
+// SAVE SITE CONTENT → Commit to valorwaveentertainment repo
 // ------------------------------------------------------------
 async function saveSite(request, env) {
   const body = await request.json();
   const newHtml = body.content || body.html;
 
   const current = await env.GITHUB.fetch(
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
+    `/repos/sammassengale82/valorwaveentertainment/contents/index.html?ref=main`,
     { method: "GET" }
   );
 
@@ -188,7 +206,7 @@ async function saveSite(request, env) {
   };
 
   const commit = await env.GITHUB.fetch(
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/index.html`,
+    `/repos/sammassengale82/valorwaveentertainment/contents/index.html`,
     {
       method: "PUT",
       body: JSON.stringify(commitBody)
@@ -200,8 +218,10 @@ async function saveSite(request, env) {
   return json({ ok: true });
 }
 
+
+
 // ------------------------------------------------------------
-// IMAGE UPLOAD HANDLER
+// IMAGE UPLOAD HANDLER (uploads to website repo)
 // ------------------------------------------------------------
 async function uploadImage(request, env) {
   const form = await request.formData();
@@ -215,7 +235,7 @@ async function uploadImage(request, env) {
   const filename = `uploads/${Date.now()}-${file.name}`;
 
   const upload = await env.GITHUB.fetch(
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/${filename}`,
+    `/repos/sammassengale82/valorwaveentertainment/contents/${filename}`,
     {
       method: "PUT",
       body: JSON.stringify({
@@ -235,6 +255,8 @@ async function uploadImage(request, env) {
     optimized: data.content.download_url
   });
 }
+
+
 
 // ------------------------------------------------------------
 // JSON HELPER
