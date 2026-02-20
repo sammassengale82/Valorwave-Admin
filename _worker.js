@@ -40,7 +40,7 @@ export default {
 // ------------------------------------------------------------
 async function serveCmsStatic(filename, env) {
   const res = await env.GITHUB.fetch(
-    `/repos/sammassengale82/Valorwave-CMS/contents/${filename}?ref=main`,
+    `/repos/sammassengale82/valorwave-cms/contents/${filename}?ref=main`,
     { method: "GET" }
   );
 
