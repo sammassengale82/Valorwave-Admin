@@ -2,49 +2,53 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
+    const cleanPath = path.split("?")[0]; // strip query params
 
     // ------------------------------------------------------------
-    // AUTH + API ROUTES (UNCHANGED)
+    // AUTH + API ROUTES
     // ------------------------------------------------------------
-
-    if (path === "/login") return handleLogin(env);
-    if (path === "/callback") return handleCallback(request, env);
-    if (path === "/api/me") return requireAuth(request, env, () => handleMe(request));
-    if (path === "/api/logout") return handleLogout();
-    if (path === "/api/load") return requireAuth(request, env, () => loadSite(env));
-    if (path === "/api/save") return requireAuth(request, env, () => saveSite(request, env));
-    if (path === "/api/upload-image") return requireAuth(request, env, () => uploadImage(request, env));
+    if (cleanPath === "/login") return handleLogin(env);
+    if (cleanPath === "/callback") return handleCallback(request, env);
+    if (cleanPath === "/api/me") return requireAuth(request, env, () => handleMe(request));
+    if (cleanPath === "/api/logout") return handleLogout();
+    if (cleanPath === "/api/load") return requireAuth(request, env, () => loadSite(env));
+    if (cleanPath === "/api/save") return requireAuth(request, env, () => saveSite(request, env));
+    if (cleanPath === "/api/upload-image") return requireAuth(request, env, () => uploadImage(request, env));
 
     // ------------------------------------------------------------
     // STATIC CMS FILES (CSS, JS, PNG, ICO, YAML)
     // ------------------------------------------------------------
     if (
-      path.endsWith(".css") ||
-      path.endsWith(".js") ||
-      path.endsWith(".png") ||
-      path.endsWith(".ico") ||
-      path.endsWith(".yml") ||
-      path.endsWith(".yaml")
+      cleanPath.endsWith(".css") ||
+      cleanPath.endsWith(".js") ||
+      cleanPath.endsWith(".png") ||
+      cleanPath.endsWith(".ico") ||
+      cleanPath.endsWith(".yml") ||
+      cleanPath.endsWith(".yaml")
     ) {
-      const filename = path.replace("/", "");
+      const filename = cleanPath.replace("/", "");
       return serveCmsStatic(filename, env);
     }
 
     // ------------------------------------------------------------
     // FALLBACK → Proxy to CMS UI Pages site
     // ------------------------------------------------------------
-    return fetch("https://Valorwave-CMS-ui.pages.dev" + path);
+    return fetch("https://valorwave-cms-ui.pages.dev" + path);
   }
 };
 
 
 
 // ------------------------------------------------------------
-// SERVE STATIC CMS FILES (via GitHub API + GITHUB_TOKEN)
+// SERVE STATIC CMS FILES (from Valorwave-CMS repo)
 // ------------------------------------------------------------
 async function serveCmsStatic(filename, env) {
+  const repo = env.CMS_REPO; // MUST be "Valorwave-CMS"
+  const owner = env.GITHUB_OWNER;
+  const branch = env.GITHUB_BRANCH;
+
   const githubRes = await fetch(
-    `https://api.github.com/repos/sammassengale82/Valorwave-CMS/contents/${filename}?ref=main`,
+    `https://api.github.com/repos/${owner}/${repo}/contents/${filename}?ref=${branch}`,
     {
       headers: {
         "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
@@ -80,7 +84,7 @@ async function serveCmsStatic(filename, env) {
 
 
 // ------------------------------------------------------------
-// LOGIN → Redirect user to GitHub OAuth (UNCHANGED)
+// LOGIN → Redirect user to GitHub OAuth
 // ------------------------------------------------------------
 function handleLogin(env) {
   const state = crypto.randomUUID();
@@ -185,8 +189,12 @@ async function requireAuth(request, env, handler) {
 // LOAD SITE CONTENT (from valorwaveentertainment repo)
 // ------------------------------------------------------------
 async function loadSite(env) {
+  const owner = env.GITHUB_OWNER;
+  const repo = env.GITHUB_REPO; // MUST be "valorwaveentertainment"
+  const branch = env.GITHUB_BRANCH;
+
   const githubRes = await fetch(
-    `https://api.github.com/repos/sammassengale82/valorwaveentertainment/contents/index.html?ref=main`,
+    `https://api.github.com/repos/${owner}/${repo}/contents/index.html?ref=${branch}`,
     {
       headers: {
         "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
@@ -206,11 +214,15 @@ async function loadSite(env) {
 // SAVE SITE CONTENT → Commit to valorwaveentertainment repo
 // ------------------------------------------------------------
 async function saveSite(request, env) {
+  const owner = env.GITHUB_OWNER;
+  const repo = env.GITHUB_REPO;
+  const branch = env.GITHUB_BRANCH;
+
   const body = await request.json();
   const newHtml = body.content || body.html;
 
   const current = await fetch(
-    `https://api.github.com/repos/sammassengale82/valorwaveentertainment/contents/index.html?ref=main`,
+    `https://api.github.com/repos/${owner}/${repo}/contents/index.html?ref=${branch}`,
     {
       headers: {
         "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
@@ -228,7 +240,7 @@ async function saveSite(request, env) {
   };
 
   const commit = await fetch(
-    `https://api.github.com/repos/sammassengale82/valorwaveentertainment/contents/index.html`,
+    `https://api.github.com/repos/${owner}/${repo}/contents/index.html`,
     {
       method: "PUT",
       headers: {
@@ -247,9 +259,13 @@ async function saveSite(request, env) {
 
 
 // ------------------------------------------------------------
-// IMAGE UPLOAD HANDLER (uploads to website repo)
+// IMAGE UPLOAD HANDLER (uploads to valorwaveentertainment repo)
 // ------------------------------------------------------------
 async function uploadImage(request, env) {
+  const owner = env.GITHUB_OWNER;
+  const repo = env.GITHUB_REPO;
+  const branch = env.GITHUB_BRANCH;
+
   const form = await request.formData();
   const file = form.get("file");
 
@@ -261,7 +277,7 @@ async function uploadImage(request, env) {
   const filename = `uploads/${Date.now()}-${file.name}`;
 
   const upload = await fetch(
-    `https://api.github.com/repos/sammassengale82/valorwaveentertainment/contents/${filename}`,
+    `https://api.github.com/repos/${owner}/${repo}/contents/${filename}`,
     {
       method: "PUT",
       headers: {
