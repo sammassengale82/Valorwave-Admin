@@ -33,7 +33,7 @@ export default {
     // ------------------------------------------------------------
     // FALLBACK → Proxy to CMS UI Pages site
     // ------------------------------------------------------------
-    return fetch("https://valorwave-cms-ui.pages.dev" + path);
+    return fetch("https://Valorwave-CMS-ui.pages.dev" + path);
   }
 };
 
@@ -44,7 +44,7 @@ export default {
 // ------------------------------------------------------------
 async function serveCmsStatic(filename, env) {
   const githubRes = await fetch(
-    `https://api.github.com/repos/sammassengale82/valorwave-cms/contents/${filename}?ref=main`,
+    `https://api.github.com/repos/sammassengale82/Valorwave-CMS/contents/${filename}?ref=main`,
     {
       headers: {
         "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
