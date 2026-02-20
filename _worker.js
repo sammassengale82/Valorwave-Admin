@@ -16,7 +16,7 @@ export default {
     if (path === "/api/upload-image") return requireAuth(request, env, () => uploadImage(request, env));
 
     // ------------------------------------------------------------
-    // STATIC CMS FILES (MATCH ALL CMS ASSETS)
+    // STATIC CMS FILES (CSS, JS, PNG, ICO, YAML)
     // ------------------------------------------------------------
     if (
       path.endsWith(".css") ||
@@ -40,21 +40,25 @@ export default {
 
 
 // ------------------------------------------------------------
-// SERVE STATIC CMS FILES FROM valorwave-cms REPO
+// SERVE STATIC CMS FILES (via GitHub API + GITHUB_TOKEN)
 // ------------------------------------------------------------
 async function serveCmsStatic(filename, env) {
-  const res = await env.GITHUB.fetch(
-    `/repos/sammassengale82/valorwave-cms/contents/${filename}?ref=main`,
-    { method: "GET" }
+  const githubRes = await fetch(
+    `https://api.github.com/repos/sammassengale82/valorwave-cms/contents/${filename}?ref=main`,
+    {
+      headers: {
+        "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    }
   );
 
-  if (!res.ok) {
+  if (!githubRes.ok) {
     return new Response("Not found", { status: 404 });
   }
 
-  const data = await res.json();
+  const data = await githubRes.json();
 
-  // Guard: ensure GitHub returned actual file content
   if (!data.content) {
     return new Response("Invalid file", { status: 500 });
   }
@@ -93,7 +97,7 @@ function handleLogin(env) {
 
 
 // ------------------------------------------------------------
-// CALLBACK → Exchange code → Set cookie → Redirect to CMS UI (UNCHANGED)
+// CALLBACK → Exchange code → Set cookie → Redirect to CMS UI
 // ------------------------------------------------------------
 async function handleCallback(request, env) {
   const url = new URL(request.url);
@@ -130,7 +134,7 @@ async function handleCallback(request, env) {
 
 
 // ------------------------------------------------------------
-// /api/me → Validate session + return GitHub user (UNCHANGED)
+// /api/me → Validate session + return GitHub user
 // ------------------------------------------------------------
 async function handleMe(request) {
   const token = request.githubToken;
@@ -148,7 +152,7 @@ async function handleMe(request) {
 
 
 // ------------------------------------------------------------
-// /api/logout → Clear cookie (UNCHANGED)
+// /api/logout → Clear cookie
 // ------------------------------------------------------------
 function handleLogout() {
   return new Response(null, {
@@ -163,7 +167,7 @@ function handleLogout() {
 
 
 // ------------------------------------------------------------
-// AUTH MIDDLEWARE (UNCHANGED)
+// AUTH MIDDLEWARE
 // ------------------------------------------------------------
 async function requireAuth(request, env, handler) {
   const cookie = request.headers.get("Cookie") || "";
@@ -181,14 +185,19 @@ async function requireAuth(request, env, handler) {
 // LOAD SITE CONTENT (from valorwaveentertainment repo)
 // ------------------------------------------------------------
 async function loadSite(env) {
-  const response = await env.GITHUB.fetch(
-    `/repos/sammassengale82/valorwaveentertainment/contents/index.html?ref=main`,
-    { method: "GET" }
+  const githubRes = await fetch(
+    `https://api.github.com/repos/sammassengale82/valorwaveentertainment/contents/index.html?ref=main`,
+    {
+      headers: {
+        "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    }
   );
 
-  if (!response.ok) return json({ error: "Failed to load site" }, 500);
+  if (!githubRes.ok) return json({ error: "Failed to load site" }, 500);
 
-  return response;
+  return githubRes;
 }
 
 
@@ -200,9 +209,14 @@ async function saveSite(request, env) {
   const body = await request.json();
   const newHtml = body.content || body.html;
 
-  const current = await env.GITHUB.fetch(
-    `/repos/sammassengale82/valorwaveentertainment/contents/index.html?ref=main`,
-    { method: "GET" }
+  const current = await fetch(
+    `https://api.github.com/repos/sammassengale82/valorwaveentertainment/contents/index.html?ref=main`,
+    {
+      headers: {
+        "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    }
   );
 
   const currentData = await current.json();
@@ -213,10 +227,14 @@ async function saveSite(request, env) {
     sha: currentData.sha
   };
 
-  const commit = await env.GITHUB.fetch(
-    `/repos/sammassengale82/valorwaveentertainment/contents/index.html`,
+  const commit = await fetch(
+    `https://api.github.com/repos/sammassengale82/valorwaveentertainment/contents/index.html`,
     {
       method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json"
+      },
       body: JSON.stringify(commitBody)
     }
   );
@@ -242,10 +260,14 @@ async function uploadImage(request, env) {
 
   const filename = `uploads/${Date.now()}-${file.name}`;
 
-  const upload = await env.GITHUB.fetch(
-    `/repos/sammassengale82/valorwaveentertainment/contents/${filename}`,
+  const upload = await fetch(
+    `https://api.github.com/repos/sammassengale82/valorwaveentertainment/contents/${filename}`,
     {
       method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json"
+      },
       body: JSON.stringify({
         message: "Upload image",
         content: base64
