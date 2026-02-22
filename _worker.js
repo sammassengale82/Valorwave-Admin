@@ -3,25 +3,14 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // -----------------------------
-    // AUTH ROUTES
-    // -----------------------------
     if (path === "/login") return handleLogin(env);
     if (path === "/callback") return handleCallback(request, env);
     if (path === "/api/logout") return handleLogout();
 
-    // Protected routes
     if (path === "/api/me") return requireAuth(request, env, handleMe);
     if (path === "/api/github") return requireAuth(request, env, proxyGithub);
 
-    // -----------------------------
-    // CMS UI STATIC (served from Pages)
-    // -----------------------------
-    return fetch("https://valorwave-cms-ui.pages.dev" + path, {
-      method: request.method,
-      headers: request.headers,
-      body: request.method === "GET" || request.method === "HEAD" ? undefined : request.body
-    });
+    return new Response("Not found", { status: 404 });
   }
 };
 
@@ -32,9 +21,7 @@ function json(data, status = 200) {
   });
 }
 
-/* ============================================================
-   LOGIN → Redirect to GitHub OAuth
-============================================================ */
+/* LOGIN → GitHub OAuth */
 function handleLogin(env) {
   const state = crypto.randomUUID();
 
@@ -47,9 +34,7 @@ function handleLogin(env) {
   return Response.redirect(redirect.toString(), 302);
 }
 
-/* ============================================================
-   CALLBACK → Exchange code → Set cookie → Redirect to CMS
-============================================================ */
+/* CALLBACK → exchange code → set cookie → redirect back to CMS UI */
 async function handleCallback(request, env) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
@@ -83,24 +68,18 @@ async function handleCallback(request, env) {
   });
 }
 
-/* ============================================================
-   REQUIRE AUTH
-============================================================ */
+/* AUTH GUARD */
 async function requireAuth(request, env, handler) {
   const cookie = request.headers.get("Cookie") || "";
   const match = cookie.match(/session=([^;]+)/);
 
   if (!match) return json({ error: "Not authenticated" }, 401);
 
-  const token = match[1];
-  request.githubToken = token;
-
+  request.githubToken = match[1];
   return handler(request, env);
 }
 
-/* ============================================================
-   /api/me → GitHub user
-============================================================ */
+/* /api/me → GitHub user */
 async function handleMe(request, env) {
   const token = request.githubToken;
 
@@ -114,34 +93,27 @@ async function handleMe(request, env) {
 
   if (!userRes.ok) return json({ error: "Invalid token" }, 401);
 
-  const user = await userRes.json();
-  return json(user);
+  return json(await userRes.json());
 }
 
-/* ============================================================
-   /api/logout → Clear cookie
-============================================================ */
+/* /api/logout → clear cookie */
 function handleLogout() {
   return new Response(null, {
-    status: 302,
+    status: 204,
     headers: {
-      "Set-Cookie": "session=; Path=/; HttpOnly; Secure; Max-Age=0; SameSite=None",
-      "Location": "/"
+      "Set-Cookie": "session=; Path=/; HttpOnly; Secure; Max-Age=0; SameSite=None"
     }
   });
 }
 
-/* ============================================================
-   /api/github → Proxy GitHub API
-   This is the heart of your CMS.
-============================================================ */
+/* /api/github → proxy GitHub API */
 async function proxyGithub(request, env) {
   const token = request.githubToken;
   const body = await request.json();
 
-  const { path, method, body: ghBody, repo } = body;
+  const { path, method, body: ghBody, repo, owner } = body;
 
-  const apiUrl = `https://api.github.com/repos/${env.GITHUB_OWNER}/${repo}/contents/${path}`;
+  const apiUrl = `https://api.github.com/repos/${owner || env.GITHUB_OWNER}/${repo}/contents/${path}`;
 
   const options = {
     method,
@@ -155,12 +127,14 @@ async function proxyGithub(request, env) {
   if (ghBody) options.body = JSON.stringify(ghBody);
 
   const res = await fetch(apiUrl, options);
-
   const text = await res.text();
-  let jsonOut = null;
 
-  try { jsonOut = JSON.parse(text); }
-  catch { jsonOut = { raw: text }; }
+  let jsonOut;
+  try {
+    jsonOut = JSON.parse(text);
+  } catch {
+    jsonOut = { raw: text };
+  }
 
   return json(jsonOut, res.status);
 }
