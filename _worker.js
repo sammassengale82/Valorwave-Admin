@@ -1,26 +1,22 @@
-// Valor Wave Entertainment – Minimal Worker for GitHub OAuth + Admin UI
-// ---------------------------------------------------------------
-// Responsibilities:
-//   - GitHub OAuth login
-//   - Issue CMS session cookie (vw_admin)
-//   - Serve /admin (static admin UI)
-//   - Serve static assets via ASSETS binding
-//
-// Everything else (CMS storage, media, history, publish, etc.)
-// will be added back in later, using GitHub as the backend.
-//
+// Valor Wave – Worker: GitHub OAuth + GitHub-backed CMS + Admin UI
 // ---------------------------------------------------------------
 
 const COOKIE_NAME = "vw_admin";
 const SESSION_TTL_SECONDS = 60 * 60 * 12; // 12 hours
 
-// -----------------------------
-// GitHub OAuth Config
-// -----------------------------
+// GitHub OAuth
 const GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize";
 const GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
 const GITHUB_USER_URL = "https://api.github.com/user";
 
+// GitHub Repo Config
+const GH_OWNER = "sammassengale82";
+const GH_REPO = "Valorwave-Admin";
+const GH_BRANCH = "main";
+
+// ---------------------------------------------------------------
+// Helpers: cookies, HMAC session
+// ---------------------------------------------------------------
 function randomState() {
   const arr = new Uint8Array(16);
   crypto.getRandomValues(arr);
@@ -44,9 +40,27 @@ function getStateCookie(request) {
   return null;
 }
 
-// -----------------------------
-// Session Token (HMAC)
-// -----------------------------
+function getCookie(request, name) {
+  const cookie = request.headers.get("cookie") || "";
+  const parts = cookie.split(";").map(p => p.trim());
+  for (const p of parts) {
+    const eq = p.indexOf("=");
+    if (eq < 0) continue;
+    const k = p.slice(0, eq).trim();
+    const v = p.slice(eq + 1).trim();
+    if (k === name) return v;
+  }
+  return null;
+}
+
+function setCookieHeader(token) {
+  return `${COOKIE_NAME}=${token}; Path=/; Max-Age=${SESSION_TTL_SECONDS}; HttpOnly; Secure; SameSite=Lax`;
+}
+
+function clearCookieHeader() {
+  return `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`;
+}
+
 function base64url(bytes) {
   const bin = String.fromCharCode(...bytes);
   const b64 = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
@@ -109,30 +123,6 @@ async function verifySessionToken(sessionSecret, token) {
   }
 }
 
-function getCookie(request, name) {
-  const cookie = request.headers.get("cookie") || "";
-  const parts = cookie.split(";").map(p => p.trim());
-  for (const p of parts) {
-    const eq = p.indexOf("=");
-    if (eq < 0) continue;
-    const k = p.slice(0, eq).trim();
-    const v = p.slice(eq + 1).trim();
-    if (k === name) return v;
-  }
-  return null;
-}
-
-function setCookieHeader(token) {
-  return `${COOKIE_NAME}=${token}; Path=/; Max-Age=${SESSION_TTL_SECONDS}; HttpOnly; Secure; SameSite=Lax`;
-}
-
-function clearCookieHeader() {
-  return `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`;
-}
-
-// -----------------------------
-// Helpers
-// -----------------------------
 function json(data, init = {}) {
   return new Response(JSON.stringify(data), {
     ...init,
@@ -160,9 +150,9 @@ function noCache(headers = {}) {
   };
 }
 
-// -----------------------------
-// Admin HTML (static)
-// -----------------------------
+// ---------------------------------------------------------------
+// Admin HTML
+// ---------------------------------------------------------------
 function adminHtml() {
   return `<!doctype html>
 <html>
@@ -179,9 +169,94 @@ function adminHtml() {
 </html>`;
 }
 
-// -----------------------------
-// Worker Entry
-// -----------------------------
+// ---------------------------------------------------------------
+// GitHub API helpers
+// ---------------------------------------------------------------
+function ghFileUrl(path) {
+  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+}
+
+function ghApiUrl(path) {
+  return `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/${path}`;
+}
+
+async function ghGetFile(path, env) {
+  const url = ghFileUrl(path);
+  const res = await fetch(url, {
+    headers: {
+      "accept": "application/vnd.github.raw+json",
+      "user-agent": "valorwave-cms-worker"
+    }
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub fetch failed: ${res.status}`);
+  return await res.json();
+}
+
+async function ghGetFileSha(path, env) {
+  const url = ghApiUrl(`contents/${encodeURIComponent(path)}`);
+  const res = await fetch(url, {
+    headers: {
+      "accept": "application/vnd.github+json",
+      "user-agent": "valorwave-cms-worker"
+    }
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub SHA fetch failed: ${res.status}`);
+  const j = await res.json();
+  return j.sha || null;
+}
+
+async function ghPutFile(path, contentObj, message, env) {
+  const token = env.GITHUB_TOKEN || "";
+  if (!token) throw new Error("GITHUB_TOKEN not configured");
+
+  const existingSha = await ghGetFileSha(path, env);
+  const url = ghApiUrl(`contents/${encodeURIComponent(path)}`);
+
+  const contentStr = JSON.stringify(contentObj, null, 2);
+  const contentB64 = btoa(unescape(encodeURIComponent(contentStr)));
+
+  const body = {
+    message,
+    content: contentB64,
+    branch: GH_BRANCH
+  };
+  if (existingSha) body.sha = existingSha;
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "authorization": `Bearer ${token}`,
+      "accept": "application/vnd.github+json",
+      "content-type": "application/json",
+      "user-agent": "valorwave-cms-worker"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`GitHub PUT failed: ${res.status} ${txt}`);
+  }
+
+  return await res.json();
+}
+
+// ---------------------------------------------------------------
+// Auth helpers
+// ---------------------------------------------------------------
+async function requireSession(request, env) {
+  const token = getCookie(request, COOKIE_NAME);
+  if (!token) return false;
+  const secret = env.SESSION_SECRET || "";
+  if (!secret) return false;
+  return await verifySessionToken(secret, token);
+}
+
+// ---------------------------------------------------------------
+// Worker entry
+// ---------------------------------------------------------------
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -202,7 +277,7 @@ export default {
       const authUrl = new URL(GITHUB_AUTH_URL);
       authUrl.searchParams.set("client_id", clientId);
       authUrl.searchParams.set("redirect_uri", redirectUri);
-      authUrl.searchParams.set("scope", "read:user user:email");
+      authUrl.searchParams.set("scope", "repo read:user user:email");
       authUrl.searchParams.set("state", state);
 
       return Response.redirect(authUrl.toString(), 302, {
@@ -230,7 +305,6 @@ export default {
         return json({ ok: false, error: "Missing GitHub or session secrets" }, { status: 500 });
       }
 
-      // Exchange code for token
       const tokenRes = await fetch(GITHUB_TOKEN_URL, {
         method: "POST",
         headers: {
@@ -251,7 +325,6 @@ export default {
         return json({ ok: false, error: "GitHub token exchange failed" }, { status: 500 });
       }
 
-      // Fetch GitHub user
       const userRes = await fetch(GITHUB_USER_URL, {
         headers: {
           "authorization": `Bearer ${accessToken}`,
@@ -263,7 +336,6 @@ export default {
       const ghUser = await userRes.json();
       const login = ghUser?.login || "";
 
-      // Restrict to allowed users
       const allowed = (env.GITHUB_ALLOWED_USERS || "")
         .split(",")
         .map(s => s.trim().toLowerCase())
@@ -273,7 +345,6 @@ export default {
         return json({ ok: false, error: "GitHub user not allowed" }, { status: 403 });
       }
 
-      // Issue CMS session cookie
       const token = await makeSessionToken(sessionSecret);
 
       const headers = noCache({
@@ -282,6 +353,93 @@ export default {
       });
 
       return Response.redirect("/admin", 302, { headers });
+    }
+
+    // -----------------------------
+    // CMS: session check
+    // -----------------------------
+    if (path === "/api/cms/session" && request.method === "GET") {
+      const ok = await requireSession(request, env);
+      return json({ ok }, { headers: noCache() });
+    }
+
+    // -----------------------------
+    // CMS: logout
+    // -----------------------------
+    if (path === "/api/cms/logout" && request.method === "POST") {
+      return json(
+        { ok: true },
+        { headers: noCache({ "set-cookie": clearCookieHeader() }) }
+      );
+    }
+
+    // -----------------------------
+    // CMS: page GET/PUT
+    // -----------------------------
+    if (path === "/api/cms/page") {
+      const slug = url.searchParams.get("slug") || "home";
+      const mode = url.searchParams.get("mode") || "published";
+
+      if (request.method === "GET") {
+        const draft = mode === "draft";
+        const filePath = draft
+          ? `cms/draft/${slug}.json`
+          : `cms/page/${slug}.json`;
+
+        try {
+          const data = await ghGetFile(filePath, env);
+          if (!data) return json({ ok: false, error: "Not found" }, { status: 404 });
+          return json(data, { headers: noCache() });
+        } catch (err) {
+          return json({ ok: false, error: "GitHub fetch error" }, { status: 500 });
+        }
+      }
+
+      if (request.method === "PUT") {
+        const authed = await requireSession(request, env);
+        if (!authed) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
+
+        const body = await request.json().catch(() => null);
+        if (!body || typeof body !== "object") {
+          return json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+        }
+
+        const filePath = `cms/draft/${slug}.json`;
+        try {
+          await ghPutFile(filePath, body, `Update draft page: ${slug}`, env);
+          return json({ ok: true }, { headers: noCache() });
+        } catch (err) {
+          return json({ ok: false, error: "GitHub write error" }, { status: 500 });
+        }
+      }
+
+      return json({ ok: false, error: "Method not allowed" }, { status: 405 });
+    }
+
+    // -----------------------------
+    // CMS: publish (draft -> published)
+    // -----------------------------
+    if (path === "/api/cms/publish" && request.method === "POST") {
+      const authed = await requireSession(request, env);
+      if (!authed) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
+
+      const body = await request.json().catch(() => ({}));
+      const slug = body.slug || "home";
+
+      const draftPath = `cms/draft/${slug}.json`;
+      const publishedPath = `cms/page/${slug}.json`;
+
+      try {
+        const draftData = await ghGetFile(draftPath, env);
+        if (!draftData) {
+          return json({ ok: false, error: "Draft not found" }, { status: 404 });
+        }
+
+        await ghPutFile(publishedPath, draftData, `Publish page: ${slug}`, env);
+        return json({ ok: true }, { headers: noCache() });
+      } catch (err) {
+        return json({ ok: false, error: "GitHub publish error" }, { status: 500 });
+      }
     }
 
     // -----------------------------
