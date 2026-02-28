@@ -1,83 +1,34 @@
-// Valor Wave Admin – Minimal GitHub-OAuth CMS Admin
-// --------------------------------------------------------------
-// Responsibilities:
-//   - Check session via /api/cms/session (worker issues vw_admin cookie)
-//   - If not logged in → redirect to GitHub OAuth
-//   - Load JSON for the selected page (we will wire this to GitHub next)
-//   - Render simple form bindings for editing JSON
-//   - Save JSON back to backend (GitHub-backed API coming next)
-//
-// Removed:
-//   - R2 upload
-//   - Media library
-//   - Analytics
-//   - History / publish / rollback
-//   - Page duplication
-//   - Legacy migrations
-//   - Dynamic UI injection
-//   - Preview iframe
-//   - Section overrides
-//   - Theme/layout/typography controls
-// --------------------------------------------------------------
-
 (function () {
-  const API_BASE = "/api/cms"; // worker will proxy to GitHub later
 
-  // --------------------------------------------------------------
-  // DOM helpers
-  // --------------------------------------------------------------
-  function qs(sel) { return document.querySelector(sel); }
-  function qsa(sel) { return Array.from(document.querySelectorAll(sel)); }
+  // ============================================================
+  // SAFE HELPERS
+  // ============================================================
+  const qs = (s, p = document) => p.querySelector(s);
+  const qsa = (s, p = document) => [...p.querySelectorAll(s)];
 
-  function bindInput(el, obj, path) {
-    const parts = path.split(".");
-    el.value = get(obj, path) || "";
-    el.addEventListener("input", () => {
-      let ref = obj;
-      for (let i = 0; i < parts.length - 1; i++) {
-        const k = parts[i];
-        if (!ref[k] || typeof ref[k] !== "object") ref[k] = {};
-        ref = ref[k];
-      }
-      ref[parts[parts.length - 1]] = el.value;
-    });
-  }
-
-  function get(obj, path) {
-    return path.split(".").reduce((acc, k) => acc && acc[k], obj);
-  }
-
-  // --------------------------------------------------------------
-  // Session check
-  // --------------------------------------------------------------
-  async function checkSession() {
-    const res = await fetch(`${API_BASE}/session`, { credentials: "include" });
-    const j = await res.json();
-    return j.ok === true;
-  }
-
-  async function requireLogin() {
-    const ok = await checkSession();
-    if (!ok) {
-      location.href = "/auth/github/login";
-      return false;
+  const safe = {
+    str(v) { return typeof v === "string" ? v : ""; },
+    num(v, f = 0) { const n = Number(v); return Number.isFinite(n) ? n : f; },
+    url(v) {
+      if (typeof v !== "string") return "";
+      try { return new URL(v, location.origin).toString(); }
+      catch { return ""; }
     }
-    return true;
-  }
+  };
 
-  // --------------------------------------------------------------
-  // Load + Save JSON
-  // --------------------------------------------------------------
+  // ============================================================
+  // PAGE LOAD/SAVE HELPERS
+  // ============================================================
   async function loadPage(slug) {
-    const res = await fetch(`${API_BASE}/page?slug=${encodeURIComponent(slug)}`, {
-      credentials: "include"
+    const res = await fetch(`/api/cms/page?slug=${encodeURIComponent(slug)}&mode=draft`, {
+      credentials: "include",
+      cache: "no-cache"
     });
-    if (!res.ok) throw new Error("Failed to load page");
     return await res.json();
   }
 
   async function savePage(slug, data) {
-    const res = await fetch(`${API_BASE}/page?slug=${encodeURIComponent(slug)}`, {
+    const res = await fetch(`/api/cms/page?slug=${encodeURIComponent(slug)}`, {
       method: "PUT",
       credentials: "include",
       headers: { "content-type": "application/json" },
@@ -86,85 +37,154 @@
     return await res.json();
   }
 
-  // --------------------------------------------------------------
-  // Render Editor
-  // --------------------------------------------------------------
-  function renderEditor(data, slug) {
-    const root = qs("#pageEditor");
-    root.innerHTML = "";
+  // ============================================================
+  // CMS DRAFT + PUBLISH HELPERS  (BLOCK 1)
+  // ============================================================
+  async function saveDraft(slug, data) {
+    const res = await fetch(`/api/cms/page?slug=${encodeURIComponent(slug)}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  }
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <h2 style="margin:0 0 10px 0">Editing: ${slug}</h2>
-      <p class="muted small">This is a minimal JSON editor. Fields map directly to the CMS JSON.</p>
-      <div class="grid" id="editorGrid"></div>
-    `;
-    root.appendChild(card);
+  async function publishPage(slug) {
+    const res = await fetch(`/api/cms/publish`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ slug })
+    });
+    return await res.json();
+  }
 
-    const grid = card.querySelector("#editorGrid");
+  // ============================================================
+  // FIELD BINDING (TEXT, HTML, IMG, HREF)
+  // ============================================================
+  function bindFields(root, dataObj) {
+    if (!root || !dataObj) return;
 
-    // Render simple inputs for top-level site + page keys
-    const fields = [
-      { label: "Business Name", path: "site.business_name" },
-      { label: "Logo URL", path: "site.logo_url" },
-      { label: "Facebook", path: "site.social.facebook" },
-      { label: "Instagram", path: "site.social.instagram" },
-      { label: "X", path: "site.social.x" },
-      { label: "Footer Copyright", path: "site.footer.copyright" },
-      { label: "Footer Tagline", path: "site.footer.tagline" },
-      { label: "Hero Headline", path: "home.hero.headline" },
-      { label: "Hero Tagline", path: "home.hero.tagline" },
-      { label: "Hero Button Text", path: "home.hero.button.text" },
-      { label: "Hero Button URL", path: "home.hero.button.url" }
-    ];
-
-    fields.forEach(f => {
-      const wrap = document.createElement("div");
-      wrap.innerHTML = `
-        <label>${f.label}</label>
-        <input data-path="${f.path}">
-      `;
-      grid.appendChild(wrap);
-      bindInput(wrap.querySelector("input"), data, f.path);
+    qsa("[data-cms-text]", root).forEach(el => {
+      const key = el.getAttribute("data-cms-text");
+      const val = getDeep(dataObj, key);
+      if (typeof val === "string") el.textContent = val;
     });
 
-    // Save button
-    qs("#saveBtn").onclick = async () => {
-      qs("#saveMsg").textContent = "Saving…";
-      const out = await savePage(slug, data);
-      qs("#saveMsg").textContent = out.ok ? "Saved." : "Error saving.";
+    qsa("[data-cms-html]", root).forEach(el => {
+      const key = el.getAttribute("data-cms-html");
+      const val = getDeep(dataObj, key);
+      if (typeof val === "string") el.innerHTML = val;
+    });
+
+    qsa("[data-cms-img]", root).forEach(el => {
+      const key = el.getAttribute("data-cms-img");
+      const val = safe.url(getDeep(dataObj, key));
+      if (val) el.src = val;
+    });
+
+    qsa("[data-cms-href]", root).forEach(el => {
+      const key = el.getAttribute("data-cms-href");
+      const val = safe.url(getDeep(dataObj, key));
+      if (val) el.href = val;
+    });
+  }
+
+  function getDeep(obj, path) {
+    if (!obj || !path) return undefined;
+    return path.split(".").reduce((acc, k) => acc && acc[k], obj);
+  }
+
+  // ============================================================
+  // RENDER EDITOR UI
+  // ============================================================
+  function renderEditor(data, slug) {
+
+    // BLOCK 2 — Track current page data
+    window.__CURRENT_PAGE_DATA__ = data;
+
+    // Fill JSON editor
+    const editor = qs("#jsonEditor");
+    editor.value = JSON.stringify(data, null, 2);
+
+    // Live update preview iframe
+    const iframe = qs("#previewFrame");
+    iframe.src = `/${slug === "home" ? "" : slug}?vw_preview=1`;
+
+    // Section list
+    const list = qs("#sectionList");
+    list.innerHTML = "";
+
+    const site = data.site || {};
+    const sections = site.dynamic_sections || {};
+
+    Object.keys(sections).forEach(key => {
+      const li = document.createElement("li");
+      li.textContent = key;
+      li.onclick = () => {
+        iframe.contentWindow.postMessage({ type: "vw_select_section", key }, "*");
+      };
+      list.appendChild(li);
+    });
+
+    // JSON editor change → update data object
+    editor.oninput = () => {
+      try {
+        const parsed = JSON.parse(editor.value);
+        window.__CURRENT_PAGE_DATA__ = parsed;
+      } catch { }
     };
   }
 
-  // --------------------------------------------------------------
-  // Init
-  // --------------------------------------------------------------
-  async function init() {
-    const ok = await requireLogin();
-    if (!ok) return;
+  // ============================================================
+  // INIT
+  // ============================================================
+  function init() {
 
-    const pageSelect = qs("#pageSelect");
-    const slug = pageSelect.value;
-
-    const data = await loadPage(slug);
-    renderEditor(data, slug);
-
-    pageSelect.onchange = async () => {
-      const slug = pageSelect.value;
+    // Page selector
+    qs("#pageSelect").onchange = async () => {
+      const slug = qs("#pageSelect").value;
       const data = await loadPage(slug);
       renderEditor(data, slug);
     };
 
-    qs("#logoutBtn").onclick = async () => {
-      await fetch(`${API_BASE}/logout`, { method: "POST", credentials: "include" });
-      location.reload();
+    // Load initial page
+    (async () => {
+      const slug = qs("#pageSelect").value;
+      const data = await loadPage(slug);
+      renderEditor(data, slug);
+    })();
+
+    // Save JSON (draft)
+    qs("#saveJsonBtn").onclick = async () => {
+      const slug = qs("#pageSelect").value;
+      const out = await savePage(slug, window.__CURRENT_PAGE_DATA__);
+      alert(out.ok ? "Saved." : "Error saving.");
+    };
+
+    // BLOCK 3 — Publish Bar Buttons
+    qs("#saveDraftBtn").onclick = async () => {
+      qs("#publishMsg").textContent = "Saving draft…";
+      const slug = qs("#pageSelect").value;
+      const out = await saveDraft(slug, window.__CURRENT_PAGE_DATA__);
+      qs("#publishMsg").textContent = out.ok ? "Draft saved." : "Error saving draft.";
+    };
+
+    qs("#previewBtn").onclick = () => {
+      const slug = qs("#pageSelect").value;
+      const url = `/${slug === "home" ? "" : slug}?vw_preview=1`;
+      window.open(url, "_blank");
+    };
+
+    qs("#publishBtn").onclick = async () => {
+      qs("#publishMsg").textContent = "Publishing…";
+      const slug = qs("#pageSelect").value;
+      const out = await publishPage(slug);
+      qs("#publishMsg").textContent = out.ok ? "Published!" : "Error publishing.";
     };
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  document.addEventListener("DOMContentLoaded", init);
+
 })();
