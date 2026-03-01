@@ -1,258 +1,282 @@
-/* ============================================================
-   GLOBAL + THEME TOKENS
-   ============================================================ */
+:root {
+  --vw-bg: #050814;
+  --vw-surface: #0b1020;
+  --vw-surface-alt: #111729;
+  --vw-border: #1f2937;
+  --vw-accent: #38bdf8;
+  --vw-accent-soft: rgba(56, 189, 248, 0.15);
+  --vw-text: #e5e7eb;
+  --vw-text-muted: #9ca3af;
+  --vw-danger: #f97373;
+  --vw-radius: 0.5rem;
+  --vw-radius-lg: 0.75rem;
+  --vw-shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.85);
+  --vw-font: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+}
 
 body.vw-admin {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  height: 100vh;
-  overflow: hidden;
+  padding: 0;
+  font-family: var(--vw-font);
+  background: radial-gradient(circle at top, #0b1120 0, #020617 55%, #000 100%);
+  color: var(--vw-text);
 }
 
-/* ORIGINAL (default) */
-body.theme-original {
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --bg: #0f1014;
-  --panel: #111219;
-  --panel-light: #1a1b22;
-  --border: rgba(255,255,255,0.06);
-  --text: #f5f5f7;
-  --text-muted: #9ca3af;
-}
+/* Theme variants */
+body.theme-original { }
+body.theme-patriotic { --vw-accent: #60a5fa; }
+body.theme-multicam { --vw-accent: #22c55e; }
 
-/* PATRIOTIC */
-body.theme-patriotic {
-  --accent: #b91c1c;
-  --accent-hover: #dc2626;
-  --bg: #0d0d12;
-  --panel: #13141c;
-  --panel-light: #1c1d26;
-  --border: rgba(255,255,255,0.08);
-  --text: #f5f5f7;
-  --text-muted: #9ca3af;
-}
-
-/* MULTICAM */
-body.theme-multicam {
-  --accent: #6b8e23;
-  --accent-hover: #7fa93a;
-  --bg: #0e0f0c;
-  --panel: #141510;
-  --panel-light: #1d1e18;
-  --border: rgba(255,255,255,0.05);
-  --text: #f5f5f7;
-  --text-muted: #9ca3af;
-}
-
-/* ============================================================
-   TOP BAR
-   ============================================================ */
-
-.vw-topbar {
+.vw-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1.25rem;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--vw-border);
+  background: linear-gradient(90deg, #020617, #020617 40%, #020617 100%);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
-.vw-logo {
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  color: var(--text);
-}
-
-.vw-topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.vw-status-dot {
-  font-size: 0.75rem;
-  color: var(--accent);
-}
-
-/* ============================================================
-   LAYOUT GRID
-   ============================================================ */
-
-.vw-shell {
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  height: calc(100vh - 48px);
-}
-
-/* ============================================================
-   SIDEBAR
-   ============================================================ */
-
-.vw-sidebar {
-  background: var(--panel);
-  border-right: 1px solid var(--border);
+.vw-header-left {
   display: flex;
   flex-direction: column;
-  padding: 0.75rem;
+  gap: 0.15rem;
+}
+
+.vw-title {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vw-status {
+  font-size: 0.75rem;
+  color: var(--vw-text-muted);
+}
+
+.vw-header-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.vw-main {
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Toolbar */
+.vw-toolbar {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
-  overflow-y: auto;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
-.vw-sidebar-section {
-  padding: 0.5rem 0.25rem;
+.vw-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.vw-sidebar-bottom {
-  margin-top: auto;
-  border-top: 1px solid var(--border);
-  padding-top: 0.75rem;
+.vw-toolbar-actions {
+  margin-left: auto;
 }
 
 .vw-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  display: block;
-  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--vw-text-muted);
 }
 
 .vw-select {
-  width: 100%;
-  padding: 0.35rem;
-  border-radius: 6px;
-  background: var(--panel-light);
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: var(--vw-surface);
+  border-radius: var(--vw-radius);
+  border: 1px solid var(--vw-border);
+  color: var(--vw-text);
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
 }
 
-/* Sections list */
-.vw-section-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.vw-section-list li {
-  padding: 0.35rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--text-muted);
+/* Buttons */
+.vw-btn {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.35rem 0.9rem;
   font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s;
 }
 
-.vw-section-list li:hover {
-  background: var(--panel-light);
-  color: var(--text);
+.vw-btn-primary {
+  background: var(--vw-accent);
+  color: #0b1120;
+  font-weight: 600;
 }
 
-/* ============================================================
-   MAIN PANEL + TABS
-   ============================================================ */
-
-.vw-main {
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+.vw-btn-secondary {
+  background: var(--vw-surface-alt);
+  color: var(--vw-text);
+  border-color: var(--vw-border);
 }
 
+.vw-btn-ghost {
+  background: transparent;
+  color: var(--vw-text-muted);
+  border-color: var(--vw-border);
+}
+
+.vw-btn:hover {
+  transform: translateY(-0.5px);
+}
+
+.vw-btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.vw-status-msg {
+  font-size: 0.8rem;
+  color: var(--vw-text-muted);
+}
+
+/* Tabs */
 .vw-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--vw-border);
+  margin-bottom: 0.75rem;
 }
 
 .vw-tab {
-  padding: 0.5rem 1rem;
-  background: transparent;
+  border-radius: 999px;
   border: none;
-  color: var(--text-muted);
+  padding: 0.3rem 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  background: transparent;
+  color: var(--vw-text-muted);
 }
 
 .vw-tab-active {
-  color: var(--text);
-  border-bottom: 2px solid var(--accent);
+  background: var(--vw-accent-soft);
+  color: var(--vw-accent);
+}
+
+/* Panels */
+.vw-tab-panels {
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: var(--vw-radius-lg);
+  border: 1px solid var(--vw-border);
+  box-shadow: var(--vw-shadow-soft);
+  padding: 0.75rem;
 }
 
 .vw-tab-panel {
   display: none;
-  padding: 0.75rem;
-  height: 100%;
-  overflow: auto;
 }
 
 .vw-tab-panel-active {
   display: block;
 }
 
-/* ============================================================
-   EDITOR PANEL
-   ============================================================ */
-
-.vw-editor-grid {
+/* Editor layout */
+.vw-editor-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 0.75rem;
-  height: calc(100vh - 48px - 40px);
 }
 
-.vw-json-editor {
+.vw-editor-left,
+.vw-editor-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.vw-textarea {
   width: 100%;
-  height: 100%;
-  background: #050609;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  min-height: 360px;
+  background: #020617;
+  color: var(--vw-text);
+  border-radius: var(--vw-radius);
+  border: 1px solid var(--vw-border);
   padding: 0.5rem;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.8rem;
+  resize: vertical;
 }
 
 .vw-preview-frame {
   width: 100%;
-  height: 100%;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #050609;
+  min-height: 260px;
+  border-radius: var(--vw-radius);
+  border: 1px solid var(--vw-border);
+  background: #020617;
 }
 
-/* ============================================================
-   MEDIA PANEL
-   ============================================================ */
+.vw-section-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 160px;
+  overflow: auto;
+  border-radius: var(--vw-radius);
+  border: 1px solid var(--vw-border);
+  background: #020617;
+}
+
+.vw-section-list li {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.7);
+}
+
+.vw-section-list li:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* Media */
+.vw-media-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
 .vw-media-dropzone {
-  border: 1px dashed var(--text-muted);
-  border-radius: 8px;
-  padding: 1.5rem;
+  border-radius: var(--vw-radius);
+  border: 1px dashed var(--vw-border);
+  padding: 1.25rem;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--vw-text-muted);
+  background: #020617;
   cursor: pointer;
-  margin-bottom: 1rem;
-  background: radial-gradient(circle at top, rgba(59,130,246,0.12), transparent);
 }
 
 .vw-media-dropzone-hover {
-  border-color: var(--accent);
-  background: radial-gradient(circle at top, rgba(59,130,246,0.2), transparent);
+  border-color: var(--vw-accent);
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .vw-media-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 0.75rem;
 }
 
 .vw-media-item {
-  background: var(--panel);
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  border-radius: var(--vw-radius);
+  border: 1px solid var(--vw-border);
+  background: #020617;
   padding: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -261,90 +285,45 @@ body.theme-multicam {
 
 .vw-media-thumb {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  border-radius: var(--vw-radius);
   object-fit: cover;
-  border-radius: 4px;
-  background: #050609;
+  max-height: 140px;
 }
 
 .vw-media-name {
   font-size: 0.75rem;
-  color: var(--text-muted);
-  word-break: break-all;
+  color: var(--vw-text-muted);
 }
 
-/* ============================================================
-   THEME PANEL
-   ============================================================ */
+/* Themes */
+.vw-theme-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
-.vw-themes-panel h2 {
-  margin-top: 0;
-  font-size: 1.1rem;
-  color: var(--text);
+.vw-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 .vw-theme-options {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin: 1rem 0;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.vw-theme-options label {
-  font-size: 0.9rem;
-  color: var(--text);
+.vw-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--vw-text-muted);
 }
 
-/* ============================================================
-   BUTTONS
-   ============================================================ */
-
-.vw-btn {
-  border-radius: 999px;
-  border: 1px solid transparent;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-}
-
-.vw-btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--text);
-}
-
-.vw-btn-primary:hover {
-  background: var(--accent-hover);
-}
-
-.vw-btn-secondary {
-  background: var(--panel-light);
-  border-color: var(--border);
-  color: var(--text);
-}
-
-.vw-btn-secondary:hover {
-  background: var(--panel);
-}
-
-.vw-btn-ghost {
-  background: transparent;
-  border-color: var(--border);
-  color: var(--text);
-}
-
-.vw-btn-ghost:hover {
-  background: rgba(255,255,255,0.04);
-}
-
-/* ============================================================
-   MESSAGES
-   ============================================================ */
-
-.vw-publish-msg {
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
+/* Responsive */
+@media (max-width: 900px) {
+  .vw-editor-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
