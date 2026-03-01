@@ -2,6 +2,9 @@ name = "valorwave-admin-worker"
 main = "_worker.js"
 compatibility_date = "2024-12-01"
 
+[vars]
+GITHUB_CLIENT_ID ="Ov23lihmfzwhx2UQraRM"
+
 [observability]
 enabled = false
 head_sampling_rate = 1
