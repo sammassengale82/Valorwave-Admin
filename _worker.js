@@ -240,7 +240,7 @@ async function handleOAuthCallback(request, env) {
   // Set session cookie and redirect to admin UI on GitHub Pages
   const headers = new Headers({
     "Set-Cookie": `vw_session=${env.ADMIN_SESSION}; Path=/; HttpOnly; Secure; SameSite=Lax`,
-    "Location": "https://massengale82.github.io/Valorwave-Admin/admin"
+    "Location": "https://sammassengale82.github.io/Valorwave-Admin/admin"
   });
 
   return new Response(null, { status: 302, headers });
