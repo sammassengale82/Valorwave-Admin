@@ -4,6 +4,7 @@ compatibility_date = "2024-12-01"
 
 [vars]
 GITHUB_CLIENT_ID ="Ov23lihmfzwhx2UQraRM"
+WORKER_DOMAIN = "valorwave-admin-worker.sammassengale82.workers.dev"
 
 [observability]
 enabled = false
