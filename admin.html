@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valor Wave Admin</title>
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Admin CSS -->
+  <link rel="stylesheet" href="/admin.css" />
+</head>
+
+<body class="vw-admin theme-original">
+
+  <!-- TOP BAR -->
+  <header class="vw-topbar">
+    <div class="vw-logo">Valor Wave Admin</div>
+    <div class="vw-topbar-right">
+      <span id="sessionStatus" class="vw-status-dot">Connected</span>
+      <button id="logoutBtn" class="vw-btn vw-btn-ghost">Logout</button>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="vw-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="vw-sidebar">
+
+      <div class="vw-sidebar-section">
+        <label class="vw-label">Page</label>
+        <select id="pageSelect" class="vw-select">
+          <option value="home">Home</option>
+        </select>
+      </div>
+
+      <div class="vw-sidebar-section">
+        <label class="vw-label">Sections</label>
+        <ul id="sectionList" class="vw-section-list"></ul>
+      </div>
+
+      <div class="vw-sidebar-section vw-sidebar-bottom">
+        <div class="publish-bar">
+          <button id="saveDraftBtn" class="vw-btn vw-btn-secondary">Save Draft</button>
+          <button id="previewBtn" class="vw-btn vw-btn-ghost">Preview</button>
+          <button id="publishBtn" class="vw-btn vw-btn-primary">Publish</button>
+        </div>
+        <div id="publishMsg" class="vw-publish-msg"></div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="vw-main">
+
+      <!-- TABS -->
+      <div class="vw-tabs">
+        <button class="vw-tab vw-tab-active" data-tab="editor">Editor</button>
+        <button class="vw-tab" data-tab="media">Media</button>
+        <button class="vw-tab" data-tab="themes">Themes</button>
+      </div>
+
+      <!-- EDITOR TAB -->
+      <section id="tab-editor" class="vw-tab-panel vw-tab-panel-active">
+        <div class="vw-editor-grid">
+          <textarea id="jsonEditor" class="vw-json-editor"></textarea>
+          <iframe id="previewFrame" class="vw-preview-frame"></iframe>
+        </div>
+      </section>
+
+      <!-- MEDIA TAB -->
+      <section id="tab-media" class="vw-tab-panel">
+        <div class="vw-media-panel">
+
+          <div id="mediaDropZone" class="vw-media-dropzone">
+            <p>Drop files here or click to upload</p>
+            <input id="mediaFileInput" type="file" accept="image/*" multiple hidden>
+          </div>
+
+          <div id="mediaGrid" class="vw-media-grid"></div>
+
+        </div>
+      </section>
+
+      <!-- THEMES TAB -->
+      <section id="tab-themes" class="vw-tab-panel">
+        <div class="vw-themes-panel">
+          <h2>Theme Mode</h2>
+
+          <div class="vw-theme-options">
+            <label><input type="radio" name="themeMode" value="original"> Original</label>
+            <label><input type="radio" name="themeMode" value="patriotic"> Patriotic</label>
+            <label><input type="radio" name="themeMode" value="multicam"> Multicam</label>
+          </div>
+
+          <button id="saveThemeBtn" class="vw-btn vw-btn-primary">Save Theme</button>
+          <div id="themeMsg" class="vw-publish-msg"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Admin JS -->
+  <script src="/admin.js"></script>
+
+</body>
+</html>
