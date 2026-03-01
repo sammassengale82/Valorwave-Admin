@@ -1,7 +1,7 @@
 (function () {
 
   // ============================================================
-  // SAFE HELPERS
+  // BASIC HELPERS
   // ============================================================
   const qs = (s, p = document) => p.querySelector(s);
   const qsa = (s, p = document) => [...p.querySelectorAll(s)];
@@ -15,6 +15,11 @@
       catch { return ""; }
     }
   };
+
+  function getDeep(obj, path) {
+    if (!obj || !path) return undefined;
+    return path.split(".").reduce((acc, k) => acc && acc[k], obj);
+  }
 
   // ============================================================
   // PAGE LOAD/SAVE HELPERS
@@ -38,7 +43,7 @@
   }
 
   // ============================================================
-  // CMS DRAFT + PUBLISH HELPERS  (BLOCK 1)
+  // DRAFT + PUBLISH HELPERS
   // ============================================================
   async function saveDraft(slug, data) {
     const res = await fetch(`/api/cms/page?slug=${encodeURIComponent(slug)}`, {
@@ -61,54 +66,62 @@
   }
 
   // ============================================================
-  // FIELD BINDING (TEXT, HTML, IMG, HREF)
+  // MEDIA HELPERS
   // ============================================================
-  function bindFields(root, dataObj) {
-    if (!root || !dataObj) return;
-
-    qsa("[data-cms-text]", root).forEach(el => {
-      const key = el.getAttribute("data-cms-text");
-      const val = getDeep(dataObj, key);
-      if (typeof val === "string") el.textContent = val;
-    });
-
-    qsa("[data-cms-html]", root).forEach(el => {
-      const key = el.getAttribute("data-cms-html");
-      const val = getDeep(dataObj, key);
-      if (typeof val === "string") el.innerHTML = val;
-    });
-
-    qsa("[data-cms-img]", root).forEach(el => {
-      const key = el.getAttribute("data-cms-img");
-      const val = safe.url(getDeep(dataObj, key));
-      if (val) el.src = val;
-    });
-
-    qsa("[data-cms-href]", root).forEach(el => {
-      const key = el.getAttribute("data-cms-href");
-      const val = safe.url(getDeep(dataObj, key));
-      if (val) el.href = val;
-    });
+  async function loadMediaList() {
+    const res = await fetch("/api/cms/media/list", { credentials: "include" });
+    const out = await res.json();
+    return out.files || [];
   }
 
-  function getDeep(obj, path) {
-    if (!obj || !path) return undefined;
-    return path.split(".").reduce((acc, k) => acc && acc[k], obj);
+  async function uploadMediaFile(file) {
+    const form = new FormData();
+    form.append("file", file);
+
+    const res = await fetch("/api/cms/media/upload", {
+      method: "POST",
+      credentials: "include",
+      body: form
+    });
+
+    return await res.json();
+  }
+
+  async function deleteMediaFile(name) {
+    const res = await fetch(`/api/cms/media/delete?file=${encodeURIComponent(name)}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+    return await res.json();
   }
 
   // ============================================================
-  // RENDER EDITOR UI
+  // RENDER EDITOR
   // ============================================================
   function renderEditor(data, slug) {
 
-    // BLOCK 2 — Track current page data
+    // Track current page data
     window.__CURRENT_PAGE_DATA__ = data;
 
-    // Fill JSON editor
+    // Sync theme mode to admin UI
+    const mode = data?.site?.theme?.mode || "original";
+    document.body.className = `vw-admin theme-${mode}`;
+    qsa('input[name="themeMode"]').forEach(r => {
+      r.checked = (r.value === mode);
+    });
+
+    // JSON editor
     const editor = qs("#jsonEditor");
     editor.value = JSON.stringify(data, null, 2);
 
-    // Live update preview iframe
+    editor.oninput = () => {
+      try {
+        const parsed = JSON.parse(editor.value);
+        window.__CURRENT_PAGE_DATA__ = parsed;
+      } catch { }
+    };
+
+    // Preview iframe
     const iframe = qs("#previewFrame");
     iframe.src = `/${slug === "home" ? "" : slug}?vw_preview=1`;
 
@@ -127,27 +140,12 @@
       };
       list.appendChild(li);
     });
-
-    // JSON editor change → update data object
-    editor.oninput = () => {
-      try {
-        const parsed = JSON.parse(editor.value);
-        window.__CURRENT_PAGE_DATA__ = parsed;
-      } catch { }
-    };
   }
 
   // ============================================================
   // INIT
   // ============================================================
   function init() {
-
-    // Page selector
-    qs("#pageSelect").onchange = async () => {
-      const slug = qs("#pageSelect").value;
-      const data = await loadPage(slug);
-      renderEditor(data, slug);
-    };
 
     // Load initial page
     (async () => {
@@ -156,14 +154,21 @@
       renderEditor(data, slug);
     })();
 
+    // Page selector
+    qs("#pageSelect").onchange = async () => {
+      const slug = qs("#pageSelect").value;
+      const data = await loadPage(slug);
+      renderEditor(data, slug);
+    };
+
     // Save JSON (draft)
-    qs("#saveJsonBtn").onclick = async () => {
+    qs("#saveJsonBtn")?.addEventListener("click", async () => {
       const slug = qs("#pageSelect").value;
       const out = await savePage(slug, window.__CURRENT_PAGE_DATA__);
       alert(out.ok ? "Saved." : "Error saving.");
-    };
+    });
 
-    // BLOCK 3 — Publish Bar Buttons
+    // Save Draft
     qs("#saveDraftBtn").onclick = async () => {
       qs("#publishMsg").textContent = "Saving draft…";
       const slug = qs("#pageSelect").value;
@@ -171,17 +176,132 @@
       qs("#publishMsg").textContent = out.ok ? "Draft saved." : "Error saving draft.";
     };
 
+    // Preview
     qs("#previewBtn").onclick = () => {
       const slug = qs("#pageSelect").value;
       const url = `/${slug === "home" ? "" : slug}?vw_preview=1`;
       window.open(url, "_blank");
     };
 
+    // Publish
     qs("#publishBtn").onclick = async () => {
       qs("#publishMsg").textContent = "Publishing…";
       const slug = qs("#pageSelect").value;
       const out = await publishPage(slug);
       qs("#publishMsg").textContent = out.ok ? "Published!" : "Error publishing.";
+    };
+
+    // ============================================================
+    // TABS
+    // ============================================================
+    qsa(".vw-tab").forEach(btn => {
+      btn.onclick = () => {
+        const tab = btn.getAttribute("data-tab");
+        qsa(".vw-tab").forEach(b => b.classList.remove("vw-tab-active"));
+        qsa(".vw-tab-panel").forEach(p => p.classList.remove("vw-tab-panel-active"));
+        btn.classList.add("vw-tab-active");
+        qs(`#tab-${tab}`).classList.add("vw-tab-panel-active");
+      };
+    });
+
+    // ============================================================
+    // MEDIA PANEL
+    // ============================================================
+    const dropZone = qs("#mediaDropZone");
+    const fileInput = qs("#mediaFileInput");
+    const mediaGrid = qs("#mediaGrid");
+
+    async function refreshMediaGrid() {
+      mediaGrid.innerHTML = "";
+      const files = await loadMediaList();
+
+      files.forEach(f => {
+        const item = document.createElement("div");
+        item.className = "vw-media-item";
+
+        const img = document.createElement("img");
+        img.className = "vw-media-thumb";
+        img.src = f.url;
+        img.alt = f.name;
+
+        const name = document.createElement("div");
+        name.className = "vw-media-name";
+        name.textContent = f.name;
+
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.gap = "0.25rem";
+
+        const insertBtn = document.createElement("button");
+        insertBtn.className = "vw-btn vw-btn-secondary";
+        insertBtn.textContent = "Insert";
+        insertBtn.onclick = () => navigator.clipboard.writeText(f.url);
+
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "vw-btn vw-btn-ghost";
+        copyBtn.textContent = "Copy URL";
+        copyBtn.onclick = () => navigator.clipboard.writeText(f.url);
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "vw-btn vw-btn-ghost";
+        delBtn.textContent = "Delete";
+        delBtn.onclick = async () => {
+          if (!confirm("Delete this file?")) return;
+          const out = await deleteMediaFile(f.name);
+          if (out.ok) refreshMediaGrid();
+        };
+
+        row.append(insertBtn, copyBtn, delBtn);
+        item.append(img, name, row);
+        mediaGrid.appendChild(item);
+      });
+    }
+
+    dropZone.onclick = () => fileInput.click();
+
+    dropZone.ondragover = (e) => {
+      e.preventDefault();
+      dropZone.classList.add("vw-media-dropzone-hover");
+    };
+
+    dropZone.ondragleave = () => {
+      dropZone.classList.remove("vw-media-dropzone-hover");
+    };
+
+    dropZone.ondrop = async (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("vw-media-dropzone-hover");
+      const files = [...e.dataTransfer.files];
+      for (const file of files) await uploadMediaFile(file);
+      refreshMediaGrid();
+    };
+
+    fileInput.onchange = async () => {
+      const files = [...fileInput.files];
+      for (const file of files) await uploadMediaFile(file);
+      fileInput.value = "";
+      refreshMediaGrid();
+    };
+
+    qs('[data-tab="media"]').addEventListener("click", () => {
+      refreshMediaGrid();
+    }, { once: true });
+
+    // ============================================================
+    // THEME PANEL
+    // ============================================================
+    qs("#saveThemeBtn").onclick = () => {
+      const selected = qs('input[name="themeMode"]:checked')?.value || "original";
+
+      const data = window.__CURRENT_PAGE_DATA__ || {};
+      data.site = data.site || {};
+      data.site.theme = data.site.theme || {};
+      data.site.theme.mode = selected;
+      window.__CURRENT_PAGE_DATA__ = data;
+
+      document.body.className = `vw-admin theme-${selected}`;
+
+      qs("#themeMsg").textContent = "Theme updated. Save Draft or Publish to apply.";
     };
   }
 
