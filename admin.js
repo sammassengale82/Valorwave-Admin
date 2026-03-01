@@ -1,6 +1,11 @@
 (function () {
 
   // ============================================================
+  // CONFIG: POINT ADMIN UI TO YOUR WORKER BACKEND
+  // ============================================================
+  const API_BASE = "https://valorwave-admin-worker.sammassengale82.workers.dev";
+
+  // ============================================================
   // BASIC HELPERS
   // ============================================================
   const qs = (s, p = document) => p.querySelector(s);
@@ -25,7 +30,7 @@
   // PAGE LOAD/SAVE HELPERS
   // ============================================================
   async function loadPage(slug) {
-    const res = await fetch(`/api/cms/page?slug=${encodeURIComponent(slug)}&mode=draft`, {
+    const res = await fetch(`${API_BASE}/api/cms/page?slug=${encodeURIComponent(slug)}&mode=draft`, {
       credentials: "include",
       cache: "no-cache"
     });
@@ -33,7 +38,7 @@
   }
 
   async function savePage(slug, data) {
-    const res = await fetch(`/api/cms/page?slug=${encodeURIComponent(slug)}`, {
+    const res = await fetch(`${API_BASE}/api/cms/page?slug=${encodeURIComponent(slug)}`, {
       method: "PUT",
       credentials: "include",
       headers: { "content-type": "application/json" },
@@ -46,7 +51,7 @@
   // DRAFT + PUBLISH HELPERS
   // ============================================================
   async function saveDraft(slug, data) {
-    const res = await fetch(`/api/cms/page?slug=${encodeURIComponent(slug)}`, {
+    const res = await fetch(`${API_BASE}/api/cms/page?slug=${encodeURIComponent(slug)}`, {
       method: "PUT",
       credentials: "include",
       headers: { "content-type": "application/json" },
@@ -56,7 +61,7 @@
   }
 
   async function publishPage(slug) {
-    const res = await fetch(`/api/cms/publish`, {
+    const res = await fetch(`${API_BASE}/api/cms/publish`, {
       method: "POST",
       credentials: "include",
       headers: { "content-type": "application/json" },
@@ -69,7 +74,7 @@
   // MEDIA HELPERS
   // ============================================================
   async function loadMediaList() {
-    const res = await fetch("/api/cms/media/list", { credentials: "include" });
+    const res = await fetch(`${API_BASE}/api/cms/media/list`, { credentials: "include" });
     const out = await res.json();
     return out.files || [];
   }
@@ -78,7 +83,7 @@
     const form = new FormData();
     form.append("file", file);
 
-    const res = await fetch("/api/cms/media/upload", {
+    const res = await fetch(`${API_BASE}/api/cms/media/upload`, {
       method: "POST",
       credentials: "include",
       body: form
@@ -88,7 +93,7 @@
   }
 
   async function deleteMediaFile(name) {
-    const res = await fetch(`/api/cms/media/delete?file=${encodeURIComponent(name)}`, {
+    const res = await fetch(`${API_BASE}/api/cms/media/delete?file=${encodeURIComponent(name)}`, {
       method: "DELETE",
       credentials: "include"
     });
@@ -100,17 +105,14 @@
   // ============================================================
   function renderEditor(data, slug) {
 
-    // Track current page data
     window.__CURRENT_PAGE_DATA__ = data;
 
-    // Sync theme mode to admin UI
     const mode = data?.site?.theme?.mode || "original";
     document.body.className = `vw-admin theme-${mode}`;
     qsa('input[name="themeMode"]').forEach(r => {
       r.checked = (r.value === mode);
     });
 
-    // JSON editor
     const editor = qs("#jsonEditor");
     editor.value = JSON.stringify(data, null, 2);
 
@@ -121,11 +123,9 @@
       } catch { }
     };
 
-    // Preview iframe
     const iframe = qs("#previewFrame");
     iframe.src = `/${slug === "home" ? "" : slug}?vw_preview=1`;
 
-    // Section list
     const list = qs("#sectionList");
     list.innerHTML = "";
 
@@ -160,13 +160,6 @@
       const data = await loadPage(slug);
       renderEditor(data, slug);
     };
-
-    // Save JSON (draft)
-    qs("#saveJsonBtn")?.addEventListener("click", async () => {
-      const slug = qs("#pageSelect").value;
-      const out = await savePage(slug, window.__CURRENT_PAGE_DATA__);
-      alert(out.ok ? "Saved." : "Error saving.");
-    });
 
     // Save Draft
     qs("#saveDraftBtn").onclick = async () => {
