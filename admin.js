@@ -11,21 +11,6 @@
   const qs = (s, p = document) => p.querySelector(s);
   const qsa = (s, p = document) => [...p.querySelectorAll(s)];
 
-  const safe = {
-    str(v) { return typeof v === "string" ? v : ""; },
-    num(v, f = 0) { const n = Number(v); return Number.isFinite(n) ? n : f; },
-    url(v) {
-      if (typeof v !== "string") return "";
-      try { return new URL(v, location.origin).toString(); }
-      catch { return ""; }
-    }
-  };
-
-  function getDeep(obj, path) {
-    if (!obj || !path) return undefined;
-    return path.split(".").reduce((acc, k) => acc && acc[k], obj);
-  }
-
   // ============================================================
   // PAGE LOAD/SAVE HELPERS
   // ============================================================
@@ -37,19 +22,6 @@
     return await res.json();
   }
 
-  async function savePage(slug, data) {
-    const res = await fetch(`${API_BASE}/api/cms/page?slug=${encodeURIComponent(slug)}`, {
-      method: "PUT",
-      credentials: "include",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    return await res.json();
-  }
-
-  // ============================================================
-  // DRAFT + PUBLISH HELPERS
-  // ============================================================
   async function saveDraft(slug, data) {
     const res = await fetch(`${API_BASE}/api/cms/page?slug=${encodeURIComponent(slug)}`, {
       method: "PUT",
@@ -104,7 +76,6 @@
   // RENDER EDITOR
   // ============================================================
   function renderEditor(data, slug) {
-
     window.__CURRENT_PAGE_DATA__ = data;
 
     const mode = data?.site?.theme?.mode || "original";
@@ -147,6 +118,37 @@
   // ============================================================
   function init() {
 
+    // LOGIN / LOGOUT BUTTONS
+    qs("#loginBtn").onclick = () => {
+      window.location.href = `${API_BASE}/oauth/login`;
+    };
+
+    qs("#logoutBtn").onclick = async () => {
+      await fetch(`${API_BASE}/oauth/logout`, {
+        method: "POST",
+        credentials: "include"
+      });
+      window.location.reload();
+    };
+
+    // Check auth state
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/cms/me`, { credentials: "include" });
+        const me = await res.json();
+        if (me.authenticated) {
+          qs("#loginBtn").style.display = "none";
+          qs("#logoutBtn").style.display = "inline-block";
+        } else {
+          qs("#loginBtn").style.display = "inline-block";
+          qs("#logoutBtn").style.display = "none";
+        }
+      } catch {
+        qs("#loginBtn").style.display = "inline-block";
+        qs("#logoutBtn").style.display = "none";
+      }
+    })();
+
     // Load initial page
     (async () => {
       const slug = qs("#pageSelect").value;
@@ -184,9 +186,7 @@
       qs("#publishMsg").textContent = out.ok ? "Published!" : "Error publishing.";
     };
 
-    // ============================================================
     // TABS
-    // ============================================================
     qsa(".vw-tab").forEach(btn => {
       btn.onclick = () => {
         const tab = btn.getAttribute("data-tab");
@@ -197,9 +197,7 @@
       };
     });
 
-    // ============================================================
     // MEDIA PANEL
-    // ============================================================
     const dropZone = qs("#mediaDropZone");
     const fileInput = qs("#mediaFileInput");
     const mediaGrid = qs("#mediaGrid");
@@ -280,9 +278,7 @@
       refreshMediaGrid();
     }, { once: true });
 
-    // ============================================================
     // THEME PANEL
-    // ============================================================
     qs("#saveThemeBtn").onclick = () => {
       const selected = qs('input[name="themeMode"]:checked')?.value || "original";
 
@@ -293,7 +289,6 @@
       window.__CURRENT_PAGE_DATA__ = data;
 
       document.body.className = `vw-admin theme-${selected}`;
-
       qs("#themeMsg").textContent = "Theme updated. Save Draft or Publish to apply.";
     };
   }
