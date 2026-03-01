@@ -1,7 +1,3 @@
 name = "valorwave-admin-worker"
 main = "_worker.js"
 compatibility_date = "2024-12-01"
-
-[vars]
-GITHUB_TOKEN ""
-ADMIN_SESSION = ""
