@@ -3,57 +3,57 @@ import { el, bindInput, ensure, setDirty } from "../state.js";
 
 export function build(CURRENT) {
   const home = ensure(CURRENT, "home", {});
-  const services = ensure(home, "services", []);
+  const services = ensure(home, "services", {
+    title: "",
+    items: []
+  });
 
   const wrap = el("div");
 
-  const addBtn = el("button", { class: "btn primary" }, "Add Service");
+  // Section Title
+  wrap.appendChild(el("label", {}, "Section Title"));
+  const title = el("input", { type: "text" });
+  bindInput(title, services, "title");
+  wrap.appendChild(title);
+
+  // Add Service Card
+  const addBtn = el("button", { class: "btn primary" }, "Add Service Card");
   addBtn.addEventListener("click", () => {
-    services.push({
-      title: "",
-      text: "",
-      image: "",
-      alt: ""
-    });
+    services.items.push({ image: "", heading: "", text: "" });
     setDirty(true);
-    rerender();
+    render();
   });
   wrap.appendChild(addBtn);
 
   const list = el("div");
   wrap.appendChild(list);
 
-  function rerender() {
+  function render() {
     list.innerHTML = "";
 
-    services.forEach((svc, i) => {
+    services.items.forEach((item, i) => {
       const card = el("div", { class: "card" });
-
-      card.appendChild(el("label", {}, "Title"));
-      const title = el("input", { type: "text" });
-      bindInput(title, svc, "title");
-      card.appendChild(title);
-
-      card.appendChild(el("label", {}, "Text"));
-      const text = el("textarea");
-      bindInput(text, svc, "text");
-      card.appendChild(text);
 
       card.appendChild(el("label", {}, "Image URL"));
       const img = el("input", { type: "text" });
-      bindInput(img, svc, "image");
+      bindInput(img, item, "image");
       card.appendChild(img);
 
-      card.appendChild(el("label", {}, "Alt Text"));
-      const alt = el("input", { type: "text" });
-      bindInput(alt, svc, "alt");
-      card.appendChild(alt);
+      card.appendChild(el("label", {}, "Heading"));
+      const heading = el("input", { type: "text" });
+      bindInput(heading, item, "heading");
+      card.appendChild(heading);
+
+      card.appendChild(el("label", {}, "Text"));
+      const text = el("textarea");
+      bindInput(text, item, "text");
+      card.appendChild(text);
 
       const remove = el("button", { class: "btn danger" }, "Remove");
       remove.addEventListener("click", () => {
-        services.splice(i, 1);
+        services.items.splice(i, 1);
         setDirty(true);
-        rerender();
+        render();
       });
       card.appendChild(remove);
 
@@ -61,6 +61,6 @@ export function build(CURRENT) {
     });
   }
 
-  rerender();
+  render();
   return wrap;
 }
