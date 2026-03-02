@@ -1,329 +1,296 @@
+/* ============================================================
+   Valor Wave CMS Admin Styles
+   Cleaned + Variable‑Driven + Layout‑Preserving
+   ============================================================ */
+
+/* Root variables (populated by admin.js) */
 :root {
-  --vw-bg: #050814;
-  --vw-surface: #0b1020;
-  --vw-surface-alt: #111729;
-  --vw-border: #1f2937;
-  --vw-accent: #38bdf8;
-  --vw-accent-soft: rgba(56, 189, 248, 0.15);
-  --vw-text: #e5e7eb;
-  --vw-text-muted: #9ca3af;
-  --vw-danger: #f97373;
-  --vw-radius: 0.5rem;
-  --vw-radius-lg: 0.75rem;
-  --vw-shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.85);
-  --vw-font: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  --admin-header: #071940;
+  --admin-accent: #CEA25D;
+  --admin-on-accent: #071940;
+  --admin-bg: #0E1F45;
+  --admin-card: rgba(255,255,255,0.06);
+  --admin-text: #E9DCC2;
+  --admin-muted: rgba(233,220,194,0.80);
+  --admin-border: rgba(255,255,255,0.18);
+
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  --pad: 14px;
+  --pad-lg: 18px;
+  --pad-xl: 24px;
+
+  --font: "Inter", system-ui, sans-serif;
 }
 
-body.vw-admin {
+/* ============================================================
+   Base Layout
+   ============================================================ */
+
+html, body {
   margin: 0;
   padding: 0;
-  font-family: var(--vw-font);
-  background: radial-gradient(circle at top, #0b1120 0, #020617 55%, #000 100%);
-  color: var(--vw-text);
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
 }
 
-/* Theme variants */
-body.theme-original { }
-body.theme-patriotic { --vw-accent: #60a5fa; }
-body.theme-multicam { --vw-accent: #22c55e; }
+#admin-root {
+  max-width: 1100px;
+  margin: 90px auto 60px auto;
+  padding: 0 18px;
+}
 
-.vw-header {
+/* ============================================================
+   Header Bar
+   ============================================================ */
+
+#admin-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--admin-header);
+  color: var(--admin-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--pad-xl);
+  z-index: 999;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-title {
+  font-weight: 900;
+  font-size: 20px;
+}
+
+#admin-status {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+
+.btn {
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-card);
+  color: var(--admin-text);
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.15s ease;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn.primary {
+  background: var(--admin-accent);
+  color: var(--admin-on-accent);
+  border: none;
+}
+
+.btn.secondary {
+  background: transparent;
+  border: 1px solid var(--admin-border);
+}
+
+.btn.danger {
+  background: transparent;
+  border: 1px solid #b33;
+  color: #f88;
+}
+
+.btn.danger:hover {
+  background: #b33;
+  color: #fff;
+}
+
+/* ============================================================
+   Cards + List Items
+   ============================================================ */
+
+.card,
+.listItem {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-lg);
+  padding: var(--pad-lg);
+  margin-bottom: 14px;
+}
+
+.listItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid var(--vw-border);
-  background: linear-gradient(90deg, #020617, #020617 40%, #020617 100%);
-  position: sticky;
-  top: 0;
-  z-index: 20;
 }
 
-.vw-header-left {
+.listItem .actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  gap: 8px;
 }
 
-.vw-title {
-  margin: 0;
-  font-size: 1.1rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+/* ============================================================
+   Section <details> Blocks
+   ============================================================ */
+
+details {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 18px;
+  padding: var(--pad-lg);
 }
 
-.vw-status {
-  font-size: 0.75rem;
-  color: var(--vw-text-muted);
-}
-
-.vw-header-right {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.vw-main {
-  padding: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Toolbar */
-.vw-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.vw-toolbar-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.vw-toolbar-actions {
-  margin-left: auto;
-}
-
-.vw-label {
-  font-size: 0.8rem;
-  color: var(--vw-text-muted);
-}
-
-.vw-select {
-  background: var(--vw-surface);
-  border-radius: var(--vw-radius);
-  border: 1px solid var(--vw-border);
-  color: var(--vw-text);
-  padding: 0.35rem 0.6rem;
-  font-size: 0.85rem;
-}
-
-/* Buttons */
-.vw-btn {
-  border-radius: 999px;
-  border: 1px solid transparent;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.8rem;
+details summary {
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  transition: background 0.15s, border-color 0.15s, transform 0.05s;
+  font-weight: 700;
+  font-size: 16px;
+  outline: none;
 }
 
-.vw-btn-primary {
-  background: var(--vw-accent);
-  color: #0b1120;
-  font-weight: 600;
+details[open] {
+  border-color: var(--admin-accent);
 }
 
-.vw-btn-secondary {
-  background: var(--vw-surface-alt);
-  color: var(--vw-text);
-  border-color: var(--vw-border);
+details[open] summary {
+  color: var(--admin-accent);
 }
 
-.vw-btn-ghost {
-  background: transparent;
-  color: var(--vw-text-muted);
-  border-color: var(--vw-border);
-}
+/* ============================================================
+   Inputs
+   ============================================================ */
 
-.vw-btn:hover {
-  transform: translateY(-0.5px);
-}
-
-.vw-btn-primary:hover {
-  filter: brightness(1.05);
-}
-
-.vw-status-msg {
-  font-size: 0.8rem;
-  color: var(--vw-text-muted);
-}
-
-/* Tabs */
-.vw-tabs {
-  display: inline-flex;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid var(--vw-border);
-  margin-bottom: 0.75rem;
-}
-
-.vw-tab {
-  border-radius: 999px;
-  border: none;
-  padding: 0.3rem 0.9rem;
-  font-size: 0.8rem;
-  cursor: pointer;
-  background: transparent;
-  color: var(--vw-text-muted);
-}
-
-.vw-tab-active {
-  background: var(--vw-accent-soft);
-  color: var(--vw-accent);
-}
-
-/* Panels */
-.vw-tab-panels {
-  background: rgba(15, 23, 42, 0.95);
-  border-radius: var(--vw-radius-lg);
-  border: 1px solid var(--vw-border);
-  box-shadow: var(--vw-shadow-soft);
-  padding: 0.75rem;
-}
-
-.vw-tab-panel {
-  display: none;
-}
-
-.vw-tab-panel-active {
-  display: block;
-}
-
-/* Editor layout */
-.vw-editor-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 0.75rem;
-}
-
-.vw-editor-left,
-.vw-editor-right {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.vw-textarea {
+input[type="text"],
+input[type="number"],
+input[type="url"],
+textarea,
+select {
   width: 100%;
-  min-height: 360px;
-  background: #020617;
-  color: var(--vw-text);
-  border-radius: var(--vw-radius);
-  border: 1px solid var(--vw-border);
-  padding: 0.5rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 0.8rem;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--admin-border);
+  background: rgba(255,255,255,0.04);
+  color: var(--admin-text);
+  font-size: 14px;
+  margin-top: 6px;
+  margin-bottom: 12px;
+}
+
+textarea {
+  min-height: 120px;
   resize: vertical;
 }
 
-.vw-preview-frame {
-  width: 100%;
-  min-height: 260px;
-  border-radius: var(--vw-radius);
-  border: 1px solid var(--vw-border);
-  background: #020617;
+label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-muted);
 }
 
-.vw-section-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 160px;
-  overflow: auto;
-  border-radius: var(--vw-radius);
-  border: 1px solid var(--vw-border);
-  background: #020617;
-}
+/* ============================================================
+   Layout Helpers
+   ============================================================ */
 
-.vw-section-list li {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.8rem;
-  cursor: pointer;
-  border-bottom: 1px solid rgba(31, 41, 55, 0.7);
-}
-
-.vw-section-list li:hover {
-  background: rgba(15, 23, 42, 0.9);
-}
-
-/* Media */
-.vw-media-layout {
+.row {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.vw-media-dropzone {
-  border-radius: var(--vw-radius);
-  border: 1px dashed var(--vw-border);
-  padding: 1.25rem;
-  text-align: center;
-  color: var(--vw-text-muted);
-  background: #020617;
-  cursor: pointer;
-}
-
-.vw-media-dropzone-hover {
-  border-color: var(--vw-accent);
-  background: rgba(15, 23, 42, 0.9);
-}
-
-.vw-media-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 0.75rem;
-}
-
-.vw-media-item {
-  border-radius: var(--vw-radius);
-  border: 1px solid var(--vw-border);
-  background: #020617;
-  padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.vw-media-thumb {
-  width: 100%;
-  border-radius: var(--vw-radius);
-  object-fit: cover;
-  max-height: 140px;
-}
-
-.vw-media-name {
-  font-size: 0.75rem;
-  color: var(--vw-text-muted);
-}
-
-/* Themes */
-.vw-theme-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.vw-subtitle {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.vw-theme-options {
-  display: flex;
+  gap: 18px;
   flex-wrap: wrap;
-  gap: 0.75rem;
 }
 
-.vw-radio {
-  display: inline-flex;
+.row > div {
+  flex: 1;
+  min-width: 260px;
+}
+
+.stack {
+  flex-direction: column;
+}
+
+.pill {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--admin-accent);
+  color: var(--admin-on-accent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ============================================================
+   Login Panel
+   ============================================================ */
+
+#login-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--vw-text-muted);
+  justify-content: center;
+  z-index: 2000;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .vw-editor-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.login-hidden {
+  display: none !important;
+}
+
+.login-card {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  width: 360px;
+  text-align: center;
+}
+
+.login-card h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+/* ============================================================
+   Preview Mode Outlines
+   ============================================================ */
+
+.vwHoverOutline {
+  outline: 3px solid rgba(212,175,55,0.85) !important;
+  outline-offset: 2px !important;
+}
+
+.vwSelectedOutline {
+  outline: 4px solid rgba(206,162,93,0.95) !important;
+  outline-offset: 3px !important;
+}
+
+/* ============================================================
+   Toasts (optional)
+   ============================================================ */
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--admin-accent);
+  color: var(--admin-on-accent);
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  z-index: 3000;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
 }
