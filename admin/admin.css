@@ -1,296 +1,104 @@
-/* ============================================================
-   Valor Wave CMS Admin Styles
-   Cleaned + Variable‑Driven + Layout‑Preserving
-   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{background:#020617;color:#e5e7eb}
+#admin-shell{display:flex;min-height:100vh}
 
-/* Root variables (populated by admin.js) */
-:root {
-  --admin-header: #071940;
-  --admin-accent: #CEA25D;
-  --admin-on-accent: #071940;
-  --admin-bg: #0E1F45;
-  --admin-card: rgba(255,255,255,0.06);
-  --admin-text: #E9DCC2;
-  --admin-muted: rgba(233,220,194,0.80);
-  --admin-border: rgba(255,255,255,0.18);
-
-  --radius: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
-
-  --pad: 14px;
-  --pad-lg: 18px;
-  --pad-xl: 24px;
-
-  --font: "Inter", system-ui, sans-serif;
+/* Sidebar */
+.sidebar{
+  width:260px;
+  background:#020617;
+  border-right:1px solid #1f2937;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar .brand{
+  padding:16px;
+  font-weight:800;
+  font-size:18px;
+  border-bottom:1px solid #1f2937;
+}
+#section-nav{
+  flex:1;
+  overflow-y:auto;
+  padding:8px 0;
+}
+.nav-item{
+  width:100%;
+  text-align:left;
+  padding:8px 14px;
+  border:none;
+  background:none;
+  color:#9ca3af;
+  cursor:pointer;
+  font-size:14px;
+}
+.nav-item.active{
+  background:#111827;
+  color:#f9fafb;
+}
+.sidebar-footer{
+  padding:10px;
+  border-top:1px solid #1f2937;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.btn{
+  padding:8px 10px;
+  border-radius:6px;
+  border:1px solid #374151;
+  background:#111827;
+  color:#e5e7eb;
+  cursor:pointer;
+  font-size:13px;
+}
+.btn.primary{background:#2563eb;border-color:#1d4ed8}
+.btn.danger{background:#b91c1c;border-color:#991b1b}
+.btn:disabled{opacity:.5;cursor:default}
+.dirty-indicator{
+  margin-top:4px;
+  font-size:12px;
+  color:#9ca3af;
 }
 
-/* ============================================================
-   Base Layout
-   ============================================================ */
-
-html, body {
-  margin: 0;
-  padding: 0;
-  background: var(--admin-bg);
-  color: var(--admin-text);
-  font-family: var(--font);
-  font-size: 15px;
-  line-height: 1.55;
+/* Main */
+.main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
 }
-
-#admin-root {
-  max-width: 1100px;
-  margin: 90px auto 60px auto;
-  padding: 0 18px;
+.main-header{
+  padding:14px 18px;
+  border-bottom:1px solid #1f2937;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
-
-/* ============================================================
-   Header Bar
-   ============================================================ */
-
-#admin-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 64px;
-  background: var(--admin-header);
-  color: var(--admin-text);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--pad-xl);
-  z-index: 999;
-  border-bottom: 1px solid var(--admin-border);
+#section-root{
+  padding:18px;
+  max-width:900px;
 }
-
-.admin-title {
-  font-weight: 900;
-  font-size: 20px;
+#section-root label{
+  display:block;
+  margin:10px 0 4px;
+  font-size:13px;
+  color:#e5e7eb;
 }
-
-#admin-status {
-  font-size: 14px;
-  opacity: 0.85;
+#section-root input,
+#section-root textarea{
+  width:100%;
+  padding:10px;
+  border-radius:6px;
+  border:1px solid #111827;
+  background:#020617;
+  color:#f9fafb;
+  font-size:14px;
 }
-
-.admin-actions {
-  display: flex;
-  gap: 10px;
+#section-root textarea{min-height:120px;resize:vertical}
+.card{
+  border:1px solid #1f2937;
+  border-radius:10px;
+  padding:12px;
+  margin:10px 0;
+  background:#020617;
 }
-
-/* ============================================================
-   Buttons
-   ============================================================ */
-
-.btn {
-  padding: 10px 18px;
-  border-radius: var(--radius);
-  border: 1px solid var(--admin-border);
-  background: var(--admin-card);
-  color: var(--admin-text);
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.15s ease;
-}
-
-.btn:hover {
-  opacity: 0.85;
-}
-
-.btn.primary {
-  background: var(--admin-accent);
-  color: var(--admin-on-accent);
-  border: none;
-}
-
-.btn.secondary {
-  background: transparent;
-  border: 1px solid var(--admin-border);
-}
-
-.btn.danger {
-  background: transparent;
-  border: 1px solid #b33;
-  color: #f88;
-}
-
-.btn.danger:hover {
-  background: #b33;
-  color: #fff;
-}
-
-/* ============================================================
-   Cards + List Items
-   ============================================================ */
-
-.card,
-.listItem {
-  background: var(--admin-card);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--radius-lg);
-  padding: var(--pad-lg);
-  margin-bottom: 14px;
-}
-
-.listItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.listItem .actions {
-  display: flex;
-  gap: 8px;
-}
-
-/* ============================================================
-   Section <details> Blocks
-   ============================================================ */
-
-details {
-  background: var(--admin-card);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--radius-lg);
-  margin-bottom: 18px;
-  padding: var(--pad-lg);
-}
-
-details summary {
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 16px;
-  outline: none;
-}
-
-details[open] {
-  border-color: var(--admin-accent);
-}
-
-details[open] summary {
-  color: var(--admin-accent);
-}
-
-/* ============================================================
-   Inputs
-   ============================================================ */
-
-input[type="text"],
-input[type="number"],
-input[type="url"],
-textarea,
-select {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--admin-border);
-  background: rgba(255,255,255,0.04);
-  color: var(--admin-text);
-  font-size: 14px;
-  margin-top: 6px;
-  margin-bottom: 12px;
-}
-
-textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--admin-muted);
-}
-
-/* ============================================================
-   Layout Helpers
-   ============================================================ */
-
-.row {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.row > div {
-  flex: 1;
-  min-width: 260px;
-}
-
-.stack {
-  flex-direction: column;
-}
-
-.pill {
-  display: inline-block;
-  padding: 4px 10px;
-  background: var(--admin-accent);
-  color: var(--admin-on-accent);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* ============================================================
-   Login Panel
-   ============================================================ */
-
-#login-panel {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-.login-hidden {
-  display: none !important;
-}
-
-.login-card {
-  background: var(--admin-card);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  width: 360px;
-  text-align: center;
-}
-
-.login-card h2 {
-  margin-top: 0;
-  margin-bottom: 12px;
-}
-
-/* ============================================================
-   Preview Mode Outlines
-   ============================================================ */
-
-.vwHoverOutline {
-  outline: 3px solid rgba(212,175,55,0.85) !important;
-  outline-offset: 2px !important;
-}
-
-.vwSelectedOutline {
-  outline: 4px solid rgba(206,162,93,0.95) !important;
-  outline-offset: 3px !important;
-}
-
-/* ============================================================
-   Toasts (optional)
-   ============================================================ */
-
-.toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--admin-accent);
-  color: var(--admin-on-accent);
-  padding: 12px 18px;
-  border-radius: var(--radius);
-  font-weight: 600;
-  z-index: 3000;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-}
+h3{margin:14px 0 6px;font-size:15px}
