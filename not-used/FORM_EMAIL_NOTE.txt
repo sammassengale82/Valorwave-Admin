@@ -1,0 +1,5 @@
+FORM EMAIL NOTE (IMPORTANT)
+- FormSubmit requires a ONE-TIME activation for your recipient address.
+- After the first submission, check valorwaveentertainment@gmail.com for an activation/confirmation email from FormSubmit and click it.
+- This version uses a standard form POST (not JavaScript fetch) to avoid browser CORS blocks.
+- If you use a different domain than valorwaveentertainment.com, update the _next URL in index.html.

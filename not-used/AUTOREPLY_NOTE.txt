@@ -1,0 +1,5 @@
+AUTO-REPLY FIX NOTE
+FormSubmit's documentation states that autoresponse does NOT work when reCAPTCHA is disabled.
+This build removes: <input type="hidden" name="_captcha" value="false">
+Result: the user may see a simple reCAPTCHA step, and the confirmation email will send.
+If you want no CAPTCHA + autoresponse, you will need a backend (Worker) instead of FormSubmit.
