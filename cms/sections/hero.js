@@ -1,46 +1,68 @@
-// /cms/sections/hero.js
-import { el, bindInput, ensure } from "../state.js";
+// /admin/sections/hero.js
+import { el, bindInput, ensure, setDirty } from "../state.js";
 
 export function build(CURRENT) {
-  const hero = ensure(CURRENT, "home.hero", {
-    title: "",
-    subtitle: "",
-    buttonText: "",
-    buttonLink: "",
-    image: ""
+  const home = ensure(CURRENT, "home", {});
+  const hero = ensure(home, "hero", {
+    headline: "",
+    kicker: "",
+    tagline: "",
+    subline: "",
+    button: {
+      text: "",
+      url: ""
+    }
   });
 
   const wrap = el("div");
 
-  // Title
-  wrap.appendChild(el("label", {}, "Hero Title"));
-  const title = el("input", { type: "text" });
-  bindInput(title, hero, "title");
-  wrap.appendChild(title);
+  // -----------------------------
+  // Headline
+  // -----------------------------
+  wrap.appendChild(el("label", {}, "Headline"));
+  const headline = el("input", { type: "text" });
+  bindInput(headline, hero, "headline");
+  wrap.appendChild(headline);
 
-  // Subtitle
-  wrap.appendChild(el("label", {}, "Hero Subtitle"));
-  const subtitle = el("textarea");
-  bindInput(subtitle, hero, "subtitle");
-  wrap.appendChild(subtitle);
+  // -----------------------------
+  // Kicker
+  // -----------------------------
+  wrap.appendChild(el("label", {}, "Kicker"));
+  const kicker = el("input", { type: "text" });
+  bindInput(kicker, hero, "kicker");
+  wrap.appendChild(kicker);
 
+  // -----------------------------
+  // Tagline
+  // -----------------------------
+  wrap.appendChild(el("label", {}, "Tagline"));
+  const tagline = el("input", { type: "text" });
+  bindInput(tagline, hero, "tagline");
+  wrap.appendChild(tagline);
+
+  // -----------------------------
+  // Subline
+  // -----------------------------
+  wrap.appendChild(el("label", {}, "Subline"));
+  const subline = el("input", { type: "text" });
+  bindInput(subline, hero, "subline");
+  wrap.appendChild(subline);
+
+  // -----------------------------
   // Button Text
+  // -----------------------------
   wrap.appendChild(el("label", {}, "Button Text"));
   const btnText = el("input", { type: "text" });
-  bindInput(btnText, hero, "buttonText");
+  bindInput(btnText, hero.button, "text");
   wrap.appendChild(btnText);
 
-  // Button Link
-  wrap.appendChild(el("label", {}, "Button Link (/path or #id)"));
-  const btnLink = el("input", { type: "text" });
-  bindInput(btnLink, hero, "buttonLink");
-  wrap.appendChild(btnLink);
-
-  // Image
-  wrap.appendChild(el("label", {}, "Hero Image URL (/images/...)"));
-  const img = el("input", { type: "text" });
-  bindInput(img, hero, "image");
-  wrap.appendChild(img);
+  // -----------------------------
+  // Button URL
+  // -----------------------------
+  wrap.appendChild(el("label", {}, "Button URL"));
+  const btnUrl = el("input", { type: "text" });
+  bindInput(btnUrl, hero.button, "url");
+  wrap.appendChild(btnUrl);
 
   return wrap;
 }
