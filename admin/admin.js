@@ -1,298 +1,156 @@
-(function () {
+// /admin.js
+import { el, setDirty, getDirty, setCurrent, getCurrent, initState } from "./admin/state.js";
 
-  // ============================================================
-  // CONFIG: POINT ADMIN UI TO YOUR WORKER BACKEND
-  // ============================================================
-  const API_BASE = "https://valorwave-admin-worker.sammassengale82.workers.dev";
+import * as hero from "./admin/sections/hero.js";
+import * as services from "./admin/sections/services.js";
+import * as bio from "./admin/sections/bio.js";
+import * as chattanooga from "./admin/sections/chattanooga.js";
+import * as brand from "./admin/sections/brand.js";
+import * as heroDiscount from "./admin/sections/heroDiscount.js";
+import * as quoteBanner from "./admin/sections/quoteBanner.js";
+import * as calendar from "./admin/sections/calendar.js";
+import * as faq from "./admin/sections/faq.js";
+import * as gallery from "./admin/sections/gallery.js";
+import * as clientsSay from "./admin/sections/clientsSay.js";
+import * as submitTestimonial from "./admin/sections/submitTestimonial.js";
+import * as headerSection from "./admin/sections/header.js";
+import * as footerSection from "./admin/sections/footer.js";
+import * as legal from "./admin/sections/legal.js";
+import * as booking from "./admin/sections/booking.js";
+import * as quoteForm from "./admin/sections/quoteForm.js";
 
-  // ============================================================
-  // BASIC HELPERS
-  // ============================================================
-  const qs = (s, p = document) => p.querySelector(s);
-  const qsa = (s, p = document) => [...p.querySelectorAll(s)];
+const SECTIONS = [
+  { id: "header", label: "Header", mod: headerSection },
+  { id: "hero", label: "Hero", mod: hero },
+  { id: "services", label: "Services", mod: services },
+  { id: "bio", label: "Bio", mod: bio },
+  { id: "chattanooga", label: "Chattanooga", mod: chattanooga },
+  { id: "brand", label: "Brand", mod: brand },
+  { id: "hero_discount", label: "Hero Discount", mod: heroDiscount },
+  { id: "quote_banner", label: "Quote Banner", mod: quoteBanner },
+  { id: "calendar", label: "Calendar", mod: calendar },
+  { id: "faqs", label: "FAQs", mod: faq },
+  { id: "gallery", label: "Gallery", mod: gallery },
+  { id: "clients_say", label: "Clients Say", mod: clientsSay },
+  { id: "testimonial", label: "Testimonial Section", mod: submitTestimonial },
+  { id: "footer", label: "Footer", mod: footerSection },
+  { id: "quote_form", label: "Quote Form", mod: quoteForm },
+  { id: "booking", label: "Booking", mod: booking },
+  { id: "legal", label: "Legal", mod: legal }
+];
 
-  // ============================================================
-  // PAGE LOAD/SAVE HELPERS
-  // ============================================================
-  async function loadPage(slug) {
-    const res = await fetch(`${API_BASE}/api/cms/page?slug=${encodeURIComponent(slug)}&mode=draft`, {
-      credentials: "include",
-      cache: "no-cache"
+const navRoot = document.getElementById("section-nav");
+const sectionRoot = document.getElementById("section-root");
+const sectionTitle = document.getElementById("section-title");
+const statusText = document.getElementById("status-text");
+const btnLoad = document.getElementById("btn-load");
+const btnSave = document.getElementById("btn-save");
+const btnPublish = document.getElementById("btn-publish");
+const dirtyIndicator = document.getElementById("dirty-indicator");
+
+let activeId = null;
+
+function renderNav() {
+  navRoot.innerHTML = "";
+  SECTIONS.forEach(sec => {
+    const btn = el("button", { class: "nav-item", "data-id": sec.id }, sec.label);
+    if (sec.id === activeId) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      if (getDirty() && !confirm("You have unsaved changes. Continue?")) return;
+      activeId = sec.id;
+      renderNav();
+      renderSection(sec);
     });
-    return await res.json();
-  }
+    navRoot.appendChild(btn);
+  });
+}
 
-  async function saveDraft(slug, data) {
-    const res = await fetch(`${API_BASE}/api/cms/page?slug=${encodeURIComponent(slug)}`, {
-      method: "PUT",
-      credentials: "include",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    return await res.json();
-  }
+function renderSection(sec) {
+  sectionRoot.innerHTML = "";
+  sectionTitle.textContent = sec.label;
+  const CURRENT = getCurrent();
+  const node = sec.mod.build(CURRENT);
+  sectionRoot.appendChild(node);
+}
 
-  async function publishPage(slug) {
-    const res = await fetch(`${API_BASE}/api/cms/publish`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ slug })
-    });
-    return await res.json();
-  }
-
-  // ============================================================
-  // MEDIA HELPERS
-  // ============================================================
-  async function loadMediaList() {
-    const res = await fetch(`${API_BASE}/api/cms/media/list`, { credentials: "include" });
-    const out = await res.json();
-    return out.files || [];
-  }
-
-  async function uploadMediaFile(file) {
-    const form = new FormData();
-    form.append("file", file);
-
-    const res = await fetch(`${API_BASE}/api/cms/media/upload`, {
-      method: "POST",
-      credentials: "include",
-      body: form
-    });
-
-    return await res.json();
-  }
-
-  async function deleteMediaFile(name) {
-    const res = await fetch(`${API_BASE}/api/cms/media/delete?file=${encodeURIComponent(name)}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
-    return await res.json();
-  }
-
-  // ============================================================
-  // RENDER EDITOR
-  // ============================================================
-  function renderEditor(data, slug) {
-    window.__CURRENT_PAGE_DATA__ = data;
-
-    const mode = data?.site?.theme?.mode || "original";
-    document.body.className = `vw-admin theme-${mode}`;
-    qsa('input[name="themeMode"]').forEach(r => {
-      r.checked = (r.value === mode);
-    });
-
-    const editor = qs("#jsonEditor");
-    editor.value = JSON.stringify(data, null, 2);
-
-    editor.oninput = () => {
-      try {
-        const parsed = JSON.parse(editor.value);
-        window.__CURRENT_PAGE_DATA__ = parsed;
-      } catch { }
-    };
-
-    const iframe = qs("#previewFrame");
-    iframe.src = `/${slug === "home" ? "" : slug}?vw_preview=1`;
-
-    const list = qs("#sectionList");
-    list.innerHTML = "";
-
-    const site = data.site || {};
-    const sections = site.dynamic_sections || {};
-
-    Object.keys(sections).forEach(key => {
-      const li = document.createElement("li");
-      li.textContent = key;
-      li.onclick = () => {
-        iframe.contentWindow.postMessage({ type: "vw_select_section", key }, "*");
-      };
-      list.appendChild(li);
-    });
-  }
-
-  // ============================================================
-  // INIT
-  // ============================================================
-  function init() {
-
-    // LOGIN / LOGOUT BUTTONS
-    qs("#loginBtn").onclick = () => {
-      window.location.href = `${API_BASE}/oauth/login`;
-    };
-
-    qs("#logoutBtn").onclick = async () => {
-      await fetch(`${API_BASE}/oauth/logout`, {
-        method: "POST",
-        credentials: "include"
-      });
-      window.location.reload();
-    };
-
-    // Check auth state
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/cms/me`, { credentials: "include" });
-        const me = await res.json();
-        if (me.authenticated) {
-          qs("#loginBtn").style.display = "none";
-          qs("#logoutBtn").style.display = "inline-block";
-        } else {
-          qs("#loginBtn").style.display = "inline-block";
-          qs("#logoutBtn").style.display = "none";
-        }
-      } catch {
-        qs("#loginBtn").style.display = "inline-block";
-        qs("#logoutBtn").style.display = "none";
-      }
-    })();
-
-    // Load initial page
-    (async () => {
-      const slug = qs("#pageSelect").value;
-      const data = await loadPage(slug);
-      renderEditor(data, slug);
-    })();
-
-    // Page selector
-    qs("#pageSelect").onchange = async () => {
-      const slug = qs("#pageSelect").value;
-      const data = await loadPage(slug);
-      renderEditor(data, slug);
-    };
-
-    // Save Draft
-    qs("#saveDraftBtn").onclick = async () => {
-      qs("#publishMsg").textContent = "Saving draft…";
-      const slug = qs("#pageSelect").value;
-      const out = await saveDraft(slug, window.__CURRENT_PAGE_DATA__);
-      qs("#publishMsg").textContent = out.ok ? "Draft saved." : "Error saving draft.";
-    };
-
-    // Preview
-    qs("#previewBtn").onclick = () => {
-      const slug = qs("#pageSelect").value;
-      const url = `/${slug === "home" ? "" : slug}?vw_preview=1`;
-      window.open(url, "_blank");
-    };
-
-    // Publish
-    qs("#publishBtn").onclick = async () => {
-      qs("#publishMsg").textContent = "Publishing…";
-      const slug = qs("#pageSelect").value;
-      const out = await publishPage(slug);
-      qs("#publishMsg").textContent = out.ok ? "Published!" : "Error publishing.";
-    };
-
-    // TABS
-    qsa(".vw-tab").forEach(btn => {
-      btn.onclick = () => {
-        const tab = btn.getAttribute("data-tab");
-        qsa(".vw-tab").forEach(b => b.classList.remove("vw-tab-active"));
-        qsa(".vw-tab-panel").forEach(p => p.classList.remove("vw-tab-panel-active"));
-        btn.classList.add("vw-tab-active");
-        qs(`#tab-${tab}`).classList.add("vw-tab-panel-active");
-      };
-    });
-
-    // MEDIA PANEL
-    const dropZone = qs("#mediaDropZone");
-    const fileInput = qs("#mediaFileInput");
-    const mediaGrid = qs("#mediaGrid");
-
-    async function refreshMediaGrid() {
-      mediaGrid.innerHTML = "";
-      const files = await loadMediaList();
-
-      files.forEach(f => {
-        const item = document.createElement("div");
-        item.className = "vw-media-item";
-
-        const img = document.createElement("img");
-        img.className = "vw-media-thumb";
-        img.src = f.url;
-        img.alt = f.name;
-
-        const name = document.createElement("div");
-        name.className = "vw-media-name";
-        name.textContent = f.name;
-
-        const row = document.createElement("div");
-        row.style.display = "flex";
-        row.style.gap = "0.25rem";
-
-        const insertBtn = document.createElement("button");
-        insertBtn.className = "vw-btn vw-btn-secondary";
-        insertBtn.textContent = "Insert";
-        insertBtn.onclick = () => navigator.clipboard.writeText(f.url);
-
-        const copyBtn = document.createElement("button");
-        copyBtn.className = "vw-btn vw-btn-ghost";
-        copyBtn.textContent = "Copy URL";
-        copyBtn.onclick = () => navigator.clipboard.writeText(f.url);
-
-        const delBtn = document.createElement("button");
-        delBtn.className = "vw-btn vw-btn-ghost";
-        delBtn.textContent = "Delete";
-        delBtn.onclick = async () => {
-          if (!confirm("Delete this file?")) return;
-          const out = await deleteMediaFile(f.name);
-          if (out.ok) refreshMediaGrid();
-        };
-
-        row.append(insertBtn, copyBtn, delBtn);
-        item.append(img, name, row);
-        mediaGrid.appendChild(item);
-      });
+async function loadDraft() {
+  statusText.textContent = "Loading draft…";
+  try {
+    const res = await fetch("/api/draft");
+    if (!res.ok) throw new Error("Failed to load draft");
+    const json = await res.json();
+    setCurrent(json);
+    setDirty(false);
+    dirtyIndicator.textContent = "Clean";
+    statusText.textContent = "Draft loaded";
+    if (activeId) {
+      const sec = SECTIONS.find(s => s.id === activeId);
+      if (sec) renderSection(sec);
     }
-
-    dropZone.onclick = () => fileInput.click();
-
-    dropZone.ondragover = (e) => {
-      e.preventDefault();
-      dropZone.classList.add("vw-media-dropzone-hover");
-    };
-
-    dropZone.ondragleave = () => {
-      dropZone.classList.remove("vw-media-dropzone-hover");
-    };
-
-    dropZone.ondrop = async (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("vw-media-dropzone-hover");
-      const files = [...e.dataTransfer.files];
-      for (const file of files) await uploadMediaFile(file);
-      refreshMediaGrid();
-    };
-
-    fileInput.onchange = async () => {
-      const files = [...fileInput.files];
-      for (const file of files) await uploadMediaFile(file);
-      fileInput.value = "";
-      refreshMediaGrid();
-    };
-
-    qs('[data-tab="media"]').addEventListener("click", () => {
-      refreshMediaGrid();
-    }, { once: true });
-
-    // THEME PANEL
-    qs("#saveThemeBtn").onclick = () => {
-      const selected = qs('input[name="themeMode"]:checked')?.value || "original";
-
-      const data = window.__CURRENT_PAGE_DATA__ || {};
-      data.site = data.site || {};
-      data.site.theme = data.site.theme || {};
-      data.site.theme.mode = selected;
-      window.__CURRENT_PAGE_DATA__ = data;
-
-      document.body.className = `vw-admin theme-${selected}`;
-      qs("#themeMsg").textContent = "Theme updated. Save Draft or Publish to apply.";
-    };
+  } catch (err) {
+    console.error(err);
+    statusText.textContent = "Error loading draft";
   }
+}
 
-  document.addEventListener("DOMContentLoaded", init);
+async function saveDraft() {
+  statusText.textContent = "Saving draft…";
+  try {
+    const body = JSON.stringify(getCurrent());
+    const res = await fetch("/api/draft", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body
+    });
+    if (!res.ok) throw new Error("Failed to save draft");
+    setDirty(false);
+    dirtyIndicator.textContent = "Clean";
+    statusText.textContent = "Draft saved";
+  } catch (err) {
+    console.error(err);
+    statusText.textContent = "Error saving draft";
+  }
+}
 
-})();
+async function publish() {
+  if (!confirm("Publish current draft to live site?")) return;
+  statusText.textContent = "Publishing…";
+  try {
+    const body = JSON.stringify(getCurrent());
+    const res = await fetch("/api/publish", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body
+    });
+    if (!res.ok) throw new Error("Failed to publish");
+    statusText.textContent = "Published";
+  } catch (err) {
+    console.error(err);
+    statusText.textContent = "Error publishing";
+  }
+}
+
+function wireDirtyWatcher() {
+  const origSetDirty = setDirty;
+  // if your state.js already handles this, you can remove this wrapper
+  window.addEventListener("cms-dirty-change", () => {
+    dirtyIndicator.textContent = getDirty() ? "Unsaved changes" : "Clean";
+  });
+}
+
+async function boot() {
+  initState();
+  renderNav();
+  btnLoad.addEventListener("click", loadDraft);
+  btnSave.addEventListener("click", saveDraft);
+  btnPublish.addEventListener("click", publish);
+  await loadDraft();
+  if (!activeId && SECTIONS.length) {
+    activeId = SECTIONS[0].id;
+    renderNav();
+    renderSection(SECTIONS[0]);
+  }
+  wireDirtyWatcher();
+}
+
+boot();
