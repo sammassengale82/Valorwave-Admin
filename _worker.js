@@ -28,7 +28,6 @@ import clientsSayJs from "./admin/sections/clientsSay.js";
 import submitTestimonialJs from "./admin/sections/submitTestimonial.js";
 import bookingJs from "./admin/sections/booking.js";
 import quoteFormJs from "./admin/sections/quoteForm.js";
-import legalJs from "./admin/sections/legal.js";
 import serviceAreaJs from "./admin/sections/serviceArea.js";
 import seoJs from "./admin/sections/seo.js";
 import analyticsJs from "./admin/sections/analytics.js";
