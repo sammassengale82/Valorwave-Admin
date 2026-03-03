@@ -1,0 +1,118 @@
+/* BASE */
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  transition: background .2s ease, color .2s ease;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-box {
+  background: var(--panel);
+  padding: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  width: 360px;
+  text-align: center;
+}
+
+.login-logo {
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+.login-box h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.login-sub {
+  margin-top: 6px;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+input[type="password"],
+.theme-select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.show-pass {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.error {
+  margin-top: 14px;
+  color: #ff6b6b;
+  font-size: 14px;
+}
+
+/* THEMES */
+
+/* ORIGINAL */
+:root[data-theme="original"] {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --panel-light: #334155;
+  --text: #f8fafc;
+  --text-muted: #cbd5e1;
+  --accent: #d4af37;
+  --border: #334155;
+  --input-bg: #0f172a;
+}
+
+/* MULTICAM */
+:root[data-theme="multicam"] {
+  --bg: #2e2a25;
+  --panel: #3a352f;
+  --panel-light: #4a453e;
+  --text: #f5f5f5;
+  --text-muted: #d1c7b8;
+  --accent: #c2a86b;
+  --border: #4a453e;
+  --input-bg: #3a352f;
+}
+
+/* PATRIOTIC */
+:root[data-theme="patriotic"] {
+  --bg: #0a1a33;
+  --panel: #11284d;
+  --panel-light: #1a3a6b;
+  --text: #ffffff;
+  --text-muted: #cbd5e1;
+  --accent: #d72638;
+  --border: #1a3a6b;
+  --input-bg: #11284d;
+}
