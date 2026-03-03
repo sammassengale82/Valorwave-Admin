@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="original">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valor Wave CMS Login</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <img src="https://valorwaveentertainment.com/logo.png" class="login-logo" alt="Valor Wave Logo">
+
+      <h1>Valor Wave CMS</h1>
+      <p class="login-sub">Administrator Access</p>
+
+      <select id="themeSelect" class="theme-select">
+        <option value="original">Original</option>
+        <option value="multicam">Multicam</option>
+        <option value="patriotic">Patriotic</option>
+      </select>
+
+      <input type="password" id="passwordInput" placeholder="Enter Password">
+
+      <label class="show-pass">
+        <input type="checkbox" id="togglePass"> Show Password
+      </label>
+
+      <button id="loginBtn">Login</button>
+
+      <p id="errorMsg" class="error"></p>
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
