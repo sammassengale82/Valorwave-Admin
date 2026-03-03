@@ -1,3 +1,8 @@
+// PROTECT ADMIN
+if (localStorage.getItem("cms-auth") !== "true") {
+  window.location.href = "/admin/login.html";
+}
+
 /* THEME SYSTEM */
 const savedTheme = localStorage.getItem("cms-theme") || "original";
 document.documentElement.setAttribute("data-theme", savedTheme);
@@ -7,17 +12,13 @@ document.getElementById("themeSelect").onchange = e => {
   const t = e.target.value;
   localStorage.setItem("cms-theme", t);
   document.documentElement.setAttribute("data-theme", t);
-/* LOGOUT */
-document.getElementById("logoutBtn").onclick = () => {
-  localStorage.removeItem("cms-auth");
-  localStorage.removeItem("cms-2fa");
-  window.location.href = "/admin/login.html";
 };
 
-/* LOAD DRAFT.JSON */
+/* GLOBAL STATE */
 let cmsData = {};
 let currentField = null;
 
+/* LOAD DRAFT.JSON */
 async function loadDraft() {
   const res = await fetch("/draft.json", { cache: "no-store" });
   cmsData = await res.json();
@@ -57,11 +58,13 @@ function loadField(key) {
 
 /* LIVE EDITING */
 document.getElementById("editor").oninput = e => {
+  if (!currentField) return;
   cmsData[currentField] = e.target.value;
   updatePreview(currentField, e.target.value);
 };
 
 document.getElementById("linkEditor").oninput = e => {
+  if (!currentField) return;
   cmsData[currentField + "__href"] = e.target.value;
   updatePreview(currentField, cmsData[currentField]);
 };
@@ -69,7 +72,7 @@ document.getElementById("linkEditor").oninput = e => {
 /* LIVE PREVIEW */
 function updatePreview(key, value) {
   const iframe = document.getElementById("previewFrame");
-  const doc = iframe.contentDocument;
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
 
   const el = doc.querySelector(`[data-ve-edit="${key}"]`);
   if (!el) return;
@@ -119,4 +122,11 @@ document.getElementById("uploadBtn").onclick = async () => {
     document.getElementById("editor").value = json.url;
     updatePreview(currentField, json.url);
   }
+};
+
+/* LOGOUT */
+document.getElementById("logoutBtn").onclick = () => {
+  localStorage.removeItem("cms-auth");
+  localStorage.removeItem("cms-2fa");
+  window.location.href = "/admin/login.html";
 };
