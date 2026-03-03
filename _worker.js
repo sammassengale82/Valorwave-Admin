@@ -1,7 +1,19 @@
 // /_worker.js
 
-// Automatically bundle all static files in the repo
-const assets = import.meta.glob("./**/*", { as: "string" });
+import manifestJSON from "__STATIC_CONTENT_MANIFEST";
+const manifest = JSON.parse(manifestJSON);
+
+function getMimeType(path) {
+  if (path.endsWith(".html")) return "text/html";
+  if (path.endsWith(".css")) return "text/css";
+  if (path.endsWith(".js")) return "application/javascript";
+  if (path.endsWith(".png")) return "image/png";
+  if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+  if (path.endsWith(".svg")) return "image/svg+xml";
+  if (path.endsWith(".xml")) return "application/xml";
+  if (path.endsWith(".txt")) return "text/plain";
+  return "application/octet-stream";
+}
 
 // GitHub repo config
 const GITHUB_OWNER = "sammassengale82";
@@ -16,18 +28,6 @@ function jsonResponse(obj, status = 200) {
     status,
     headers: { "Content-Type": "application/json" }
   });
-}
-
-function getMimeType(path) {
-  if (path.endsWith(".html")) return "text/html";
-  if (path.endsWith(".css")) return "text/css";
-  if (path.endsWith(".js")) return "application/javascript";
-  if (path.endsWith(".png")) return "image/png";
-  if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
-  if (path.endsWith(".svg")) return "image/svg+xml";
-  if (path.endsWith(".xml")) return "application/xml";
-  if (path.endsWith(".txt")) return "text/plain";
-  return "application/octet-stream";
 }
 
 // --- GitHub helpers --------------------------------------------------------
@@ -123,7 +123,7 @@ export default {
       return new Response("Method not allowed", { status: 405 });
     }
 
-    // Forms (stubbed)
+    // Forms
     if (path === "/forms/quote" && request.method === "POST") {
       return new Response("OK", { status: 200 });
     }
@@ -131,12 +131,14 @@ export default {
       return new Response("OK", { status: 200 });
     }
 
-    // Serve static assets
-    const key = "." + path;
-    if (assets[key]) {
-      const body = await assets[key]();
+    // Static asset serving via __STATIC_CONTENT
+    const key = path.startsWith("/") ? path.slice(1) : path;
+    const assetKey = manifest[key];
+
+    if (assetKey) {
+      const asset = await env.__STATIC_CONTENT.get(assetKey);
       const type = getMimeType(path);
-      return new Response(body, { headers: { "Content-Type": type } });
+      return new Response(asset, { headers: { "Content-Type": type } });
     }
 
     return new Response("Not found", { status: 404 });
