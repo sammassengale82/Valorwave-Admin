@@ -7,7 +7,7 @@ export function build(CURRENT) {
     title: ""
   });
 
-  const list = ensure(home, "clients_say", []);
+  let list = ensure(home, "clients_say", []);
   if (!Array.isArray(list)) list = [];
 
   const wrap = el("div");
