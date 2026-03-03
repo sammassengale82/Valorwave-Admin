@@ -3,7 +3,7 @@ import { el, bindInput, ensure, setDirty } from "../state.js";
 
 export function build(CURRENT) {
   const home = ensure(CURRENT, "home", {});
-  const faqs = ensure(home, "faqs", []);
+  let faqs = ensure(home, "faqs", []);
 
   if (!Array.isArray(faqs)) faqs = [];
 
