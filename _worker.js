@@ -1,176 +1,203 @@
-// _worker.js — Valorwave Admin Worker (Final Theme-Integrated Version)
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // -------------------------------
-    // ROUTING
-    // -------------------------------
-    if (path === "/api/draft" && request.method === "GET") {
-      return readFile(env, "draft.json");
+    // Handle CORS preflight
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders()
+      });
     }
 
-    if (path === "/api/draft" && request.method === "PUT") {
-      return writeFile(env, "draft.json", await request.text());
+    // Route: GET draft.json
+    if (path === "/drafts" && request.method === "GET") {
+      return handleGet(env, "draft.json");
     }
 
-    if (path === "/api/publish" && request.method === "PUT") {
-      return writeFile(env, "publish.json", await request.text());
+    // Route: PUT draft.json
+    if (path === "/drafts" && request.method === "PUT") {
+      return handlePut(request, env, "draft.json");
     }
 
-    // -------------------------------
-    // THEMES
-    // -------------------------------
-    if (path === "/api/site-theme" && request.method === "GET") {
-      return readFile(env, "site-theme.txt");
+    // Route: GET publish.json
+    if (path === "/publish" && request.method === "GET") {
+      return handleGet(env, "publish.json");
     }
 
-    if (path === "/api/site-theme" && request.method === "PUT") {
-      return writeFile(env, "site-theme.txt", await request.text());
+    // Route: PUT publish.json
+    if (path === "/publish" && request.method === "PUT") {
+      return handlePut(request, env, "publish.json");
     }
 
-    if (path === "/api/cms-theme" && request.method === "GET") {
-      return readFile(env, "cms-theme.txt");
+    // Route: GET site-theme.txt
+    if (path === "/site-theme" && request.method === "GET") {
+      return handleGet(env, "site-theme.txt");
     }
 
-    if (path === "/api/cms-theme" && request.method === "PUT") {
-      return writeFile(env, "cms-theme.txt", await request.text());
+    // Route: PUT site-theme.txt
+    if (path === "/site-theme" && request.method === "PUT") {
+      return handlePut(request, env, "site-theme.txt");
     }
 
-    // -------------------------------
-    // IMAGE UPLOADS
-    // -------------------------------
-    if (path === "/api/upload" && request.method === "POST") {
-      return handleImageUpload(request, env);
+    // Route: GET cms-theme.txt
+    if (path === "/cms-theme" && request.method === "GET") {
+      return handleGet(env, "cms-theme.txt");
     }
 
-    return new Response("Not found", { status: 404 });
+    // Route: PUT cms-theme.txt
+    if (path === "/cms-theme" && request.method === "PUT") {
+      return handlePut(request, env, "cms-theme.txt");
+    }
+
+    // Route: Image Upload
+    if (path === "/upload" && request.method === "POST") {
+      return handleUpload(request, env);
+    }
+
+    return new Response("Not Found", { status: 404, headers: corsHeaders() });
   }
 };
 
-// ------------------------------------------------------------
-// READ FILE FROM GITHUB REPO
-// ------------------------------------------------------------
-async function readFile(env, filename) {
-  const res = await fetch(
-    `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`,
-    {
-      headers: {
-        "Authorization": `token ${env.GITHUB_TOKEN}`,
-        "User-Agent": "Valorwave-CMS"
-      }
+// -----------------------------
+// GitHub API Helpers
+// -----------------------------
+
+async function handleGet(env, filename) {
+  const apiUrl = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
+
+  const res = await fetch(apiUrl, {
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "User-Agent": "Valorwave-Worker"
     }
-  );
+  });
 
   if (!res.ok) {
-    return new Response(`Failed to read ${filename}`, { status: 500 });
+    return new Response("GitHub GET failed", {
+      status: res.status,
+      headers: corsHeaders()
+    });
   }
 
   const json = await res.json();
   const content = atob(json.content);
 
   return new Response(content, {
-    headers: { "Content-Type": detectType(filename) }
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders()
+    }
   });
 }
 
-// ------------------------------------------------------------
-// WRITE FILE TO GITHUB REPO
-// ------------------------------------------------------------
-async function writeFile(env, filename, content) {
-  const getRes = await fetch(
-    `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`,
-    {
-      headers: {
-        "Authorization": `token ${env.GITHUB_TOKEN}`,
-        "User-Agent": "Valorwave-CMS"
-      }
+async function handlePut(request, env, filename) {
+  const body = await request.text();
+  const apiUrl = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
+
+  // Get SHA for existing file
+  const existing = await fetch(apiUrl, {
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "User-Agent": "Valorwave-Worker"
     }
-  );
+  });
 
   let sha = null;
-  if (getRes.ok) {
-    const json = await getRes.json();
+  if (existing.ok) {
+    const json = await existing.json();
     sha = json.sha;
   }
 
-  const body = {
+  const payload = {
     message: `Update ${filename}`,
-    content: btoa(content),
+    content: btoa(body),
     sha
   };
 
-  const putRes = await fetch(
-    `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`,
-    {
-      method: "PUT",
-      headers: {
-        "Authorization": `token ${env.GITHUB_TOKEN}`,
-        "User-Agent": "Valorwave-CMS",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
-    }
-  );
+  const update = await fetch(apiUrl, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "User-Agent": "Valorwave-Worker",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
 
-  if (!putRes.ok) {
-    return new Response(`Failed to write ${filename}`, { status: 500 });
+  if (!update.ok) {
+    return new Response("GitHub PUT failed", {
+      status: update.status,
+      headers: corsHeaders()
+    });
   }
 
-  return new Response("OK", { status: 200 });
+  return new Response("OK", {
+    status: 200,
+    headers: corsHeaders()
+  });
 }
 
-// ------------------------------------------------------------
-// IMAGE UPLOAD HANDLER
-// ------------------------------------------------------------
-async function handleImageUpload(request, env) {
+// -----------------------------
+// Image Upload Handler
+// -----------------------------
+async function handleUpload(request, env) {
   const form = await request.formData();
   const file = form.get("file");
 
   if (!file) {
-    return new Response("No file uploaded", { status: 400 });
+    return new Response("No file uploaded", {
+      status: 400,
+      headers: corsHeaders()
+    });
   }
 
   const arrayBuffer = await file.arrayBuffer();
   const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
   const filename = `uploads/${Date.now()}-${file.name}`;
+  const apiUrl = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
 
-  const body = {
+  const payload = {
     message: `Upload ${filename}`,
     content: base64
   };
 
-  const res = await fetch(
-    `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`,
-    {
-      method: "PUT",
-      headers: {
-        "Authorization": `token ${env.GITHUB_TOKEN}`,
-        "User-Agent": "Valorwave-CMS",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
-    }
-  );
+  const upload = await fetch(apiUrl, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "User-Agent": "Valorwave-Worker",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
 
-  if (!res.ok) {
-    return new Response("Upload failed", { status: 500 });
+  if (!upload.ok) {
+    return new Response("Upload failed", {
+      status: upload.status,
+      headers: corsHeaders()
+    });
   }
 
-  const json = await res.json();
-  return new Response(JSON.stringify({ url: json.content.download_url }), {
-    headers: { "Content-Type": "application/json" }
+  return new Response(JSON.stringify({ url: filename }), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders()
+    }
   });
 }
 
-// ------------------------------------------------------------
-// MIME TYPE DETECTION
-// ------------------------------------------------------------
-function detectType(filename) {
-  if (filename.endsWith(".json")) return "application/json";
-  if (filename.endsWith(".txt")) return "text/plain";
-  return "text/plain";
+// -----------------------------
+// CORS Headers
+// -----------------------------
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "https://sammassengale82.github.io",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+  };
 }
