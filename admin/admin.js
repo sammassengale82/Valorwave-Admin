@@ -1,148 +1,195 @@
-// /admin/admin.js
-import { applyCmsTheme, applySiteTheme, saveCmsTheme, saveSiteTheme } from "./theme.js";
-import { setDirty, isDirty } from "./state.js";
+// admin.js — Valorwave CMS Admin (Root‑Path, GitHub Worker Version)
 
-// ------------------------------------------------------------
-// Worker API base URL
-// ------------------------------------------------------------
-const API_BASE = "https://valorwave-admin-worker.sammassengale82.workers.dev";
+import {
+  loadDraft,
+  saveDraft,
+  publish,
+  loadSiteTheme,
+  saveSiteTheme,
+  loadCmsTheme,
+  saveCmsTheme,
+  uploadImage
+} from "./api.js";
 
-// ------------------------------------------------------------
-// Section module loader
-// ------------------------------------------------------------
-const sectionModules = {};
+// ---------------------------------------------
+// GLOBAL STATE
+// ---------------------------------------------
+let data = null;
 
-async function loadSection(name) {
-  if (!sectionModules[name]) {
-    sectionModules[name] = await import(`./sections/${name}.js`);
-  }
-  return sectionModules[name];
+// ---------------------------------------------
+// AUTO-CREATE MISSING STRUCTURE
+// ---------------------------------------------
+function ensureStructure() {
+  if (!data.site) data.site = {};
+  if (!data.home) data.home = {};
+
+  // Site-level
+  data.site.header ??= { logo_url: "", business_name: "", nav_links: [], cta: { label: "", url: "" }, social: {}, quicknav: [] };
+  data.site.footer ??= { text: "", year: "" };
+  data.site.seo ??= {};
+  data.site.analytics ??= {};
+  data.site.booking ??= { url: "" };
+  data.site.forms ??= { quote: {}, testimonial: {} };
+
+  // Home-level
+  data.home.hero ??= {};
+  data.home.hero_discount ??= {};
+  data.home.quote_banner ??= {};
+  data.home.services ??= { title: "", items: [] };
+  data.home.gallery ??= { title: "", images: [] };
+  data.home.faq ??= []; // FIXED
+  data.home.clients_say_section ??= { title: "" };
+  data.home.clients_say ??= [];
+  data.home.chattanooga ??= { title: "", image_url: "", image_alt: "", intro: "", cards: [] };
+  data.home.bio ??= { title: "", image_url: "", image_alt: "", name_line: "", paragraphs: [] };
+  data.home.brand ??= { title: "", image_url: "", image_alt: "", paragraphs: [] };
+  data.home.calendar ??= { embed_url: "" };
+  data.home.service_area ??= { title: "", html: "" };
+  data.home.quote_form ??= {}; // FIXED
+  data.home.submit_testimonial ??= {}; // FIXED
+  data.home.legal ??= {};
 }
 
-// ------------------------------------------------------------
-// Global CMS state (draft.json)
-// ------------------------------------------------------------
-let CURRENT = null;
+// ---------------------------------------------
+// LOAD DRAFT ON START
+// ---------------------------------------------
+async function init() {
+  const draft = await loadDraft();
 
-// ------------------------------------------------------------
-// Load draft.json from Worker
-// ------------------------------------------------------------
-async function loadDraft() {
-  const res = await fetch(`${API_BASE}/api/draft`);
-  if (!res.ok) {
-    console.error("Failed to load draft.json");
-    return;
-  }
-  CURRENT = await res.json();
-  setDirty(false);
-  document.getElementById("saveStatus").textContent = "Draft Loaded";
-}
-
-// ------------------------------------------------------------
-// Save draft.json to Worker
-// ------------------------------------------------------------
-async function saveDraft() {
-  if (!CURRENT) return;
-
-  const res = await fetch(`${API_BASE}/api/draft`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(CURRENT, null, 2)
-  });
-
-  if (res.ok) {
-    setDirty(false);
-    document.getElementById("saveStatus").textContent = "Draft Saved";
+  if (typeof draft === "string") {
+    try { data = JSON.parse(draft); }
+    catch { data = {}; }
   } else {
-    document.getElementById("saveStatus").textContent = "Save Failed";
+    data = draft || {};
   }
+
+  ensureStructure();
+  attachUI();
 }
 
-// ------------------------------------------------------------
-// Publish draft.json → publish.json
-// ------------------------------------------------------------
-async function publish() {
-  if (!CURRENT) return;
+window.addEventListener("DOMContentLoaded", init);
 
-  const res = await fetch(`${API_BASE}/api/publish`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(CURRENT, null, 2)
-  });
-
-  if (res.ok) {
-    setDirty(false);
-    document.getElementById("saveStatus").textContent = "Published";
-  } else {
-    document.getElementById("saveStatus").textContent = "Publish Failed";
-  }
-}
-
-// ------------------------------------------------------------
-// Render selected section
-// ------------------------------------------------------------
-async function showSection(name) {
-  const mod = await loadSection(name);
-  const container = document.getElementById("sectionContent");
-
-  container.innerHTML = "";
-  mod.render(container, CURRENT);
-}
-
-// ------------------------------------------------------------
-// Sidebar click handling
-// ------------------------------------------------------------
-function setupSidebar() {
-  const buttons = document.querySelectorAll(".sidebar button");
-
-  buttons.forEach(btn => {
+// ---------------------------------------------
+// UI HANDLERS
+// ---------------------------------------------
+function attachUI() {
+  // Sidebar buttons
+  document.querySelectorAll("[data-section]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const section = btn.getAttribute("data-section");
-      showSection(section);
+      const section = btn.dataset.section;
+      openSection(section);
+    });
+  });
+
+  // Save Draft
+  document.getElementById("saveDraft").addEventListener("click", async () => {
+    await saveDraft(data);
+    alert("Draft saved.");
+  });
+
+  // Publish
+  document.getElementById("publish").addEventListener("click", async () => {
+    await publish(data);
+    alert("Published.");
+  });
+
+  // Save CMS Theme
+  document.getElementById("saveCmsTheme").addEventListener("click", async () => {
+    const theme = document.getElementById("cmsThemeSelect").value;
+    await saveCmsTheme(theme);
+    alert("CMS Theme saved.");
+  });
+
+  // Save Site Theme
+  document.getElementById("saveSiteTheme").addEventListener("click", async () => {
+    const theme = document.getElementById("siteThemeSelect").value;
+    await saveSiteTheme(theme);
+    alert("Site Theme saved.");
+  });
+
+  // Image Upload
+  document.querySelectorAll("input[type='file']").forEach(input => {
+    input.addEventListener("change", async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const res = await uploadImage(file);
+      if (res.url) {
+        e.target.dataset.targetField.split(".").reduce((obj, key, idx, arr) => {
+          if (idx === arr.length - 1) obj[key] = res.url;
+          return obj[key];
+        }, data);
+      }
     });
   });
 }
 
-// ------------------------------------------------------------
-// Theme integration
-// ------------------------------------------------------------
-function setupThemes() {
-  applyCmsTheme();
-  applySiteTheme();
+// ---------------------------------------------
+// SECTION EDITOR LOADING
+// ---------------------------------------------
+function openSection(section) {
+  const panel = document.getElementById("editorPanel");
+  panel.innerHTML = "";
 
-  document.getElementById("saveCmsTheme").onclick = saveCmsTheme;
-  document.getElementById("saveSiteTheme").onclick = saveSiteTheme;
+  const sectionData = section.includes(".")
+    ? section.split(".").reduce((o, k) => o?.[k], data)
+    : data.home[section] || data.site[section];
+
+  if (!sectionData) return;
+
+  panel.innerHTML = generateEditor(section, sectionData);
+  attachEditorBindings(section, sectionData);
 }
 
-// ------------------------------------------------------------
-// Save + Publish buttons
-// ------------------------------------------------------------
-function setupSaveButtons() {
-  document.getElementById("saveBtn").onclick = saveDraft;
-  document.getElementById("publishBtn").onclick = publish;
-}
+// ---------------------------------------------
+// DYNAMIC FORM GENERATION
+// ---------------------------------------------
+function generateEditor(section, obj) {
+  let html = `<h2>${section.replace(/_/g, " ").toUpperCase()}</h2>`;
 
-// ------------------------------------------------------------
-// Warn before leaving if unsaved changes
-// ------------------------------------------------------------
-window.addEventListener("beforeunload", (e) => {
-  if (isDirty()) {
-    e.preventDefault();
-    e.returnValue = "";
+  for (const key in obj) {
+    const value = obj[key];
+
+    if (Array.isArray(value)) {
+      html += `
+        <label>${key}</label>
+        <textarea data-field="${key}" rows="6">${JSON.stringify(value, null, 2)}</textarea>
+      `;
+    } else if (typeof value === "object") {
+      html += `
+        <label>${key}</label>
+        <textarea data-field="${key}" rows="6">${JSON.stringify(value, null, 2)}</textarea>
+      `;
+    } else {
+      html += `
+        <label>${key}</label>
+        <input data-field="${key}" value="${value || ""}">
+      `;
+    }
   }
-});
 
-// ------------------------------------------------------------
-// Initialize admin UI
-// ------------------------------------------------------------
-async function init() {
-  await loadDraft();
-  setupSidebar();
-  setupSaveButtons();
-  setupThemes();
-
-  // Load default section
-  showSection("header");
+  html += `<button id="saveSection">Save Section</button>`;
+  return html;
 }
 
-init();
+// ---------------------------------------------
+// SAVE SECTION BACK INTO DATA
+// ---------------------------------------------
+function attachEditorBindings(section, sectionData) {
+  document.getElementById("saveSection").addEventListener("click", () => {
+    const fields = document.querySelectorAll("[data-field]");
+
+    fields.forEach(f => {
+      const key = f.dataset.field;
+      const val = f.value;
+
+      try {
+        sectionData[key] = JSON.parse(val);
+      } catch {
+        sectionData[key] = val;
+      }
+    });
+
+    alert("Section updated.");
+  });
+}
