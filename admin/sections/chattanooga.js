@@ -1,8 +1,7 @@
-// /admin/sections/chattanooga.js
 import { el, bindInput, ensure, setDirty } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const ch = ensure(home, "chattanooga", {
     title: "",
     image_url: "",
@@ -36,11 +35,6 @@ export function build(CURRENT) {
   wrap.appendChild(intro);
 
   const addBtn = el("button", { class: "btn primary" }, "Add Card");
-  addBtn.addEventListener("click", () => {
-    ch.cards.push({ title: "", text: "" });
-    setDirty(true);
-    rerender();
-  });
   wrap.appendChild(addBtn);
 
   const list = el("div");
@@ -49,31 +43,39 @@ export function build(CURRENT) {
   function rerender() {
     list.innerHTML = "";
 
-    ch.cards.forEach((card, i) => {
-      const c = el("div", { class: "card" });
+    ch.cards.forEach((cardObj, i) => {
+      const card = el("div", { class: "card" });
 
-      c.appendChild(el("label", {}, "Card Title"));
+      card.appendChild(el("label", {}, "Card Title"));
       const ct = el("input", { type: "text" });
-      bindInput(ct, card, "title");
-      c.appendChild(ct);
+      bindInput(ct, cardObj, "title");
+      card.appendChild(ct);
 
-      c.appendChild(el("label", {}, "Card Text"));
-      const tx = el("textarea");
-      bindInput(tx, card, "text");
-      c.appendChild(tx);
+      card.appendChild(el("label", {}, "Card Text"));
+      const txt = el("textarea");
+      bindInput(txt, cardObj, "text");
+      card.appendChild(txt);
 
-      const remove = el("button", { class: "btn danger" }, "Remove");
-      remove.addEventListener("click", () => {
+      const del = el("button", { class: "btn danger" }, "Delete");
+      del.addEventListener("click", () => {
         ch.cards.splice(i, 1);
         setDirty(true);
         rerender();
       });
-      c.appendChild(remove);
+      card.appendChild(del);
 
-      list.appendChild(c);
+      list.appendChild(card);
     });
   }
 
+  addBtn.addEventListener("click", () => {
+    ch.cards.push({ title: "", text: "" });
+    setDirty(true);
+    rerender();
+  });
+
   rerender();
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
