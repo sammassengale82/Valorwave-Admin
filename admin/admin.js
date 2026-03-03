@@ -7,6 +7,11 @@ document.getElementById("themeSelect").onchange = e => {
   const t = e.target.value;
   localStorage.setItem("cms-theme", t);
   document.documentElement.setAttribute("data-theme", t);
+/* LOGOUT */
+document.getElementById("logoutBtn").onclick = () => {
+  localStorage.removeItem("cms-auth");
+  localStorage.removeItem("cms-2fa");
+  window.location.href = "/admin/login.html";
 };
 
 /* LOAD DRAFT.JSON */
