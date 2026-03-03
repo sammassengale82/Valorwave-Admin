@@ -1,4 +1,4 @@
-// admin.js — Valorwave CMS Admin (Root‑Path, GitHub Worker Version)
+// admin.js — Valorwave CMS Admin (GitHub Worker Version)
 
 import {
   loadDraft,
@@ -11,9 +11,6 @@ import {
   uploadImage
 } from "./api.js";
 
-// ---------------------------------------------
-// GLOBAL STATE
-// ---------------------------------------------
 let data = null;
 
 // ---------------------------------------------
@@ -23,21 +20,19 @@ function ensureStructure() {
   if (!data.site) data.site = {};
   if (!data.home) data.home = {};
 
-  // Site-level
   data.site.header ??= { logo_url: "", business_name: "", nav_links: [], cta: { label: "", url: "" }, social: {}, quicknav: [] };
-  data.site.footer ??= { text: "", year: "" };
+  data.site.footer ??= {};
   data.site.seo ??= {};
   data.site.analytics ??= {};
   data.site.booking ??= { url: "" };
   data.site.forms ??= { quote: {}, testimonial: {} };
 
-  // Home-level
   data.home.hero ??= {};
   data.home.hero_discount ??= {};
   data.home.quote_banner ??= {};
   data.home.services ??= { title: "", items: [] };
   data.home.gallery ??= { title: "", images: [] };
-  data.home.faq ??= []; // FIXED
+  data.home.faq ??= []; 
   data.home.clients_say_section ??= { title: "" };
   data.home.clients_say ??= [];
   data.home.chattanooga ??= { title: "", image_url: "", image_alt: "", intro: "", cards: [] };
@@ -45,13 +40,13 @@ function ensureStructure() {
   data.home.brand ??= { title: "", image_url: "", image_alt: "", paragraphs: [] };
   data.home.calendar ??= { embed_url: "" };
   data.home.service_area ??= { title: "", html: "" };
-  data.home.quote_form ??= {}; // FIXED
-  data.home.submit_testimonial ??= {}; // FIXED
+  data.home.quote_form ??= {};
+  data.home.submit_testimonial ??= {};
   data.home.legal ??= {};
 }
 
 // ---------------------------------------------
-// LOAD DRAFT ON START
+// INIT
 // ---------------------------------------------
 async function init() {
   const draft = await loadDraft();
@@ -73,89 +68,61 @@ window.addEventListener("DOMContentLoaded", init);
 // UI HANDLERS
 // ---------------------------------------------
 function attachUI() {
-  // Sidebar buttons
   document.querySelectorAll("[data-section]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const section = btn.dataset.section;
-      openSection(section);
-    });
+    btn.addEventListener("click", () => openSection(btn.dataset.section));
   });
 
-  // Save Draft
   document.getElementById("saveDraft").addEventListener("click", async () => {
     await saveDraft(data);
     alert("Draft saved.");
   });
 
-  // Publish
   document.getElementById("publish").addEventListener("click", async () => {
     await publish(data);
     alert("Published.");
   });
 
-  // Save CMS Theme
   document.getElementById("saveCmsTheme").addEventListener("click", async () => {
     const theme = document.getElementById("cmsThemeSelect").value;
     await saveCmsTheme(theme);
     alert("CMS Theme saved.");
   });
 
-  // Save Site Theme
   document.getElementById("saveSiteTheme").addEventListener("click", async () => {
     const theme = document.getElementById("siteThemeSelect").value;
     await saveSiteTheme(theme);
     alert("Site Theme saved.");
   });
-
-  // Image Upload
-  document.querySelectorAll("input[type='file']").forEach(input => {
-    input.addEventListener("change", async e => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const res = await uploadImage(file);
-      if (res.url) {
-        e.target.dataset.targetField.split(".").reduce((obj, key, idx, arr) => {
-          if (idx === arr.length - 1) obj[key] = res.url;
-          return obj[key];
-        }, data);
-      }
-    });
-  });
 }
 
 // ---------------------------------------------
-// SECTION EDITOR LOADING
+// SECTION EDITOR
 // ---------------------------------------------
 function openSection(section) {
   const panel = document.getElementById("editorPanel");
   panel.innerHTML = "";
 
-  const sectionData = section.includes(".")
-    ? section.split(".").reduce((o, k) => o?.[k], data)
-    : data.home[section] || data.site[section];
+  const sectionData =
+    data.home[section] ??
+    data.site[section] ??
+    null;
 
-  if (!sectionData) return;
+  if (!sectionData) {
+    panel.innerHTML = `<p>Section not found: ${section}</p>`;
+    return;
+  }
 
   panel.innerHTML = generateEditor(section, sectionData);
-  attachEditorBindings(section, sectionData);
+  attachEditorBindings(sectionData);
 }
 
-// ---------------------------------------------
-// DYNAMIC FORM GENERATION
-// ---------------------------------------------
 function generateEditor(section, obj) {
   let html = `<h2>${section.replace(/_/g, " ").toUpperCase()}</h2>`;
 
   for (const key in obj) {
     const value = obj[key];
 
-    if (Array.isArray(value)) {
-      html += `
-        <label>${key}</label>
-        <textarea data-field="${key}" rows="6">${JSON.stringify(value, null, 2)}</textarea>
-      `;
-    } else if (typeof value === "object") {
+    if (Array.isArray(value) || typeof value === "object") {
       html += `
         <label>${key}</label>
         <textarea data-field="${key}" rows="6">${JSON.stringify(value, null, 2)}</textarea>
@@ -172,10 +139,7 @@ function generateEditor(section, obj) {
   return html;
 }
 
-// ---------------------------------------------
-// SAVE SECTION BACK INTO DATA
-// ---------------------------------------------
-function attachEditorBindings(section, sectionData) {
+function attachEditorBindings(sectionData) {
   document.getElementById("saveSection").addEventListener("click", () => {
     const fields = document.querySelectorAll("[data-field]");
 
