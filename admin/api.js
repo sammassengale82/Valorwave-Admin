@@ -1,10 +1,10 @@
 // api.js — Valorwave CMS API Client (GitHub-backed Worker)
 
 const API = {
-  draft: "/drafts",
-  publish: "/publish",
-  siteTheme: "/site-theme",
-  cmsTheme: "/cms-theme",
+  draft: "/draft.json",
+  publish: "/publish.json",
+  siteTheme: "/site-theme.txt",
+  cmsTheme: "/cms-theme.txt",
   upload: "/upload"
 };
 
