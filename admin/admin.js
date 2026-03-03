@@ -1,8 +1,51 @@
-// /admin/admin.js
-import { loadDraft, saveDraft, publish } from "./api.js";
-import { setDirty, isDirty, CURRENT } from "./state.js";
+// admin/admin.js
+// CMS Admin Controller (API-only Worker backend)
 
-// Import all sections
+// --- API ENDPOINTS ---------------------------------------------------------
+
+const API_BASE = "https://valorwave-admin-worker.sammassengale82.workers.dev";
+
+async function loadDraft() {
+  const res = await fetch(`${API_BASE}/api/draft`);
+  if (!res.ok) throw new Error("Failed to load draft");
+  return await res.json();
+}
+
+async function saveDraft(data) {
+  const res = await fetch(`${API_BASE}/api/draft`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Failed to save draft");
+}
+
+async function publish(data) {
+  const res = await fetch(`${API_BASE}/api/publish`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Failed to publish");
+}
+
+// --- STATE MANAGEMENT ------------------------------------------------------
+
+export let CURRENT = {};
+let DIRTY = false;
+
+export function setDirty() {
+  DIRTY = true;
+  document.getElementById("saveStatus").textContent = "Unsaved changes";
+}
+
+export function isDirty() {
+  return DIRTY;
+}
+
+// --- SECTION LOADING -------------------------------------------------------
+// Each section module must export: render(container, data) and save(data)
+
 import * as header from "./sections/header.js";
 import * as footer from "./sections/footer.js";
 import * as hero from "./sections/hero.js";
@@ -19,67 +62,71 @@ import * as clientsSay from "./sections/clientsSay.js";
 import * as submitTestimonial from "./sections/submitTestimonial.js";
 import * as booking from "./sections/booking.js";
 import * as quoteForm from "./sections/quoteForm.js";
+import * as legal from "./sections/legal.js";
 import * as serviceArea from "./sections/serviceArea.js";
 import * as seo from "./sections/seo.js";
 import * as analytics from "./sections/analytics.js";
 
-// Register sections
 const SECTIONS = {
-  "Header": header,
-  "Footer": footer,
-  "Hero": hero,
-  "Services": services,
-  "Bio": bio,
-  "Chattanooga": chattanooga,
-  "Brand": brand,
-  "Hero Discount": heroDiscount,
-  "Quote Banner": quoteBanner,
-  "Calendar": calendar,
-  "FAQs": faq,
-  "Gallery": gallery,
-  "Clients Say": clientsSay,
-  "Submit Testimonial": submitTestimonial,
-  "Booking Page": booking,
-  "Quote Form": quoteForm,
-  "Legal Pages": legal,
-  "Service Area": serviceArea,
-  "SEO": seo,
-  "Analytics": analytics
+  header,
+  footer,
+  hero,
+  services,
+  bio,
+  chattanooga,
+  brand,
+  heroDiscount,
+  quoteBanner,
+  calendar,
+  faq,
+  gallery,
+  clientsSay,
+  submitTestimonial,
+  booking,
+  quoteForm,
+  legal,
+  serviceArea,
+  seo,
+  analytics
 };
 
-const sidebar = document.getElementById("sidebar");
-const container = document.getElementById("section-container");
+// --- UI HANDLERS -----------------------------------------------------------
 
-// Build sidebar
-Object.keys(SECTIONS).forEach(name => {
-  const btn = document.createElement("button");
-  btn.textContent = name;
-  btn.addEventListener("click", () => loadSection(name));
-  sidebar.appendChild(btn);
-});
-
-// Load section
 function loadSection(name) {
-  container.innerHTML = "";
   const mod = SECTIONS[name];
-  container.appendChild(mod.build(CURRENT));
+  if (!mod) return;
+
+  const container = document.getElementById("sectionContent");
+  container.innerHTML = "";
+
+  mod.render(container, CURRENT);
 }
 
-// Load draft on startup
-(async () => {
-  const data = await loadDraft();
-  Object.assign(CURRENT, data);
-  loadSection("Header");
-})();
-
-// Save Draft
-document.getElementById("saveDraft").addEventListener("click", async () => {
+async function handleSave() {
   await saveDraft(CURRENT);
-  setDirty(false);
-});
+  DIRTY = false;
+  document.getElementById("saveStatus").textContent = "Saved";
+}
 
-// Publish
-document.getElementById("publish").addEventListener("click", async () => {
+async function handlePublish() {
   await publish(CURRENT);
-  setDirty(false);
-});
+  DIRTY = false;
+  document.getElementById("saveStatus").textContent = "Published";
+}
+
+// --- INITIALIZATION --------------------------------------------------------
+
+async function init() {
+  CURRENT = await loadDraft();
+
+  document.querySelectorAll("[data-section]").forEach(btn => {
+    btn.addEventListener("click", () => loadSection(btn.dataset.section));
+  });
+
+  document.getElementById("saveBtn").addEventListener("click", handleSave);
+  document.getElementById("publishBtn").addEventListener("click", handlePublish);
+
+  document.getElementById("saveStatus").textContent = "Loaded";
+}
+
+init();
