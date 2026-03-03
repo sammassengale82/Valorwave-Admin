@@ -1,8 +1,7 @@
-// /admin/sections/calendar.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const cal = ensure(home, "calendar", {
     embed_url: ""
   });
@@ -14,5 +13,7 @@ export function build(CURRENT) {
   bindInput(embed, cal, "embed_url");
   wrap.appendChild(embed);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
