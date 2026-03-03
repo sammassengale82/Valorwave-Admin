@@ -62,7 +62,7 @@
     },
     "services": { "title": "", "items": [] },
     "gallery": { "title": "", "images": [] },
-    "faqs": [],
+    "faq": [],
     "clients_say_section": { "title": "" },
     "clients_say": [],
     "chattanooga": {
@@ -87,7 +87,7 @@
     },
     "calendar": { "embed_url": "" },
     "service_area": { "title": "", "html": "" },
-    "testimonial_section": {
+    "submit_testimonial": {
       "title": "",
       "permission_label": "",
       "note_text": ""
