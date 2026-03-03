@@ -1,97 +1,90 @@
-// /cms/api.js
-// Worker API client for Valor Wave CMS (GitHub-backed, OAuth via Cloudflare Worker)
+// api.js — Valorwave CMS API Client (GitHub-backed Worker)
 
-const API_BASE = "/api/cms";
+const API = {
+  draft: "/drafts",
+  publish: "/publish",
+  siteTheme: "/site-theme",
+  cmsTheme: "/cms-theme",
+  upload: "/upload"
+};
 
-async function request(path, options = {}) {
-  const res = await fetch(path, {
-    credentials: "include",
+// Generic request helper
+async function request(url, options = {}) {
+  const res = await fetch(url, {
     headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {})
+      ...(options.body ? { "Content-Type": "application/json" } : {})
     },
     ...options
   });
 
-  if (res.status === 401) {
-    return { unauthorized: true };
-  }
-
   const text = await res.text();
-  if (!text) return { ok: res.ok };
-
   try {
-    const json = JSON.parse(text);
-    return { ok: res.ok, status: res.status, data: json };
+    return JSON.parse(text);
   } catch {
-    return { ok: res.ok, status: res.status, raw: text };
+    return text;
   }
 }
 
 // -----------------------------
-// Session / Auth
+// Draft
 // -----------------------------
-
-export async function getSession() {
-  return request("/api/session", { method: "GET" });
+export async function loadDraft() {
+  return request(API.draft, { method: "GET" });
 }
 
-export function loginWithGitHub() {
-  window.location.href = "/auth/login";
-}
-
-export async function logout() {
-  return request("/auth/logout", { method: "POST" });
-}
-
-// -----------------------------
-// Pages / Content
-// -----------------------------
-
-export async function fetchPage(slug, mode = "draft") {
-  const url = `${API_BASE}/page?slug=${encodeURIComponent(slug)}&mode=${encodeURIComponent(mode)}`;
-  return request(url, { method: "GET" });
-}
-
-export async function saveDraft(slug, data) {
-  const url = `${API_BASE}/page?slug=${encodeURIComponent(slug)}&mode=draft`;
-  return request(url, {
+export async function saveDraft(data) {
+  return request(API.draft, {
     method: "PUT",
-    body: JSON.stringify(data || {})
-  });
-}
-
-export async function publishPage(slug) {
-  const url = `${API_BASE}/publish?slug=${encodeURIComponent(slug)}`;
-  return request(url, { method: "POST" });
-}
-
-export async function fetchPages() {
-  const url = `${API_BASE}/pages`;
-  return request(url, { method: "GET" });
-}
-
-export async function duplicatePage(fromSlug, toSlug) {
-  const url = `${API_BASE}/duplicate`;
-  return request(url, {
-    method: "POST",
-    body: JSON.stringify({ from_slug: fromSlug, to_slug: toSlug })
+    body: JSON.stringify(data)
   });
 }
 
 // -----------------------------
-// History / Rollback
+// Publish
 // -----------------------------
-
-export async function fetchHistory(slug) {
-  const url = `${API_BASE}/history?slug=${encodeURIComponent(slug)}`;
-  return request(url, { method: "GET" });
+export async function publish(data) {
+  return request(API.publish, {
+    method: "PUT",
+    body: JSON.stringify(data)
+  });
 }
 
-export async function rollbackPage(slug, commitSha) {
-  const url = `${API_BASE}/rollback`;
-  return request(url, {
-    method: "POST",
-    body: JSON.stringify({ slug, commit: commitSha })
+// -----------------------------
+// Themes
+// -----------------------------
+export async function loadSiteTheme() {
+  return request(API.siteTheme, { method: "GET" });
+}
+
+export async function saveSiteTheme(text) {
+  return request(API.siteTheme, {
+    method: "PUT",
+    body: text
   });
+}
+
+export async function loadCmsTheme() {
+  return request(API.cmsTheme, { method: "GET" });
+}
+
+export async function saveCmsTheme(text) {
+  return request(API.cmsTheme, {
+    method: "PUT",
+    body: text
+  });
+}
+
+// -----------------------------
+// Upload
+// -----------------------------
+export async function uploadImage(file) {
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch(API.upload, {
+    method: "POST",
+    body: form
+  });
+
+  return res.json();
 }
