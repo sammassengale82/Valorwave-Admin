@@ -1,32 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>Valor Wave CMS Admin</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="/admin.css"/>
+  <meta charset="UTF-8" />
+  <title>Valorwave CMS Admin</title>
+  <link rel="stylesheet" href="admin.css" />
 </head>
+
 <body>
-  <div id="admin-shell">
-    <aside class="sidebar">
-      <div class="brand">Valor Wave Admin</div>
-      <nav id="section-nav"></nav>
-      <div class="sidebar-footer">
-        <button id="btn-load" class="btn">Reload Draft</button>
-        <button id="btn-save" class="btn primary">Save Draft</button>
-        <button id="btn-publish" class="btn danger">Publish</button>
-        <div id="dirty-indicator" class="dirty-indicator">Clean</div>
-      </div>
-    </aside>
-    <main class="main">
-      <header class="main-header">
-        <h1 id="section-title">Select a section</h1>
-        <span id="status-text"></span>
-      </header>
-      <section id="section-root"></section>
-    </main>
+  <header class="topbar">
+    <h1>Valorwave CMS</h1>
+    <div class="status">
+      <span id="saveStatus">Loaded</span>
+      <button id="saveBtn">Save Draft</button>
+      <button id="publishBtn" class="primary">Publish</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar">
+      <button data-section="header">Header</button>
+      <button data-section="hero">Hero</button>
+      <button data-section="heroDiscount">Hero Discount</button>
+      <button data-section="quoteBanner">Quote Banner</button>
+      <button data-section="services">Services</button>
+      <button data-section="gallery">Gallery</button>
+      <button data-section="faq">FAQ</button>
+      <button data-section="clientsSay">Clients Say</button>
+      <button data-section="chattanooga">Chattanooga</button>
+      <button data-section="bio">Bio</button>
+      <button data-section="brand">Brand</button>
+      <button data-section="calendar">Calendar</button>
+      <button data-section="serviceArea">Service Area</button>
+      <button data-section="quoteForm">Quote Form</button>
+      <button data-section="submitTestimonial">Submit Testimonial</button>
+      <button data-section="footer">Footer</button>
+      <button data-section="seo">SEO</button>
+      <button data-section="analytics">Analytics</button>
+      <button data-section="legal">Legal</button>
+    </nav>
+
+    <main id="sectionContent" class="content"></main>
   </div>
 
-  <script type="module" src="/admin.js"></script>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
