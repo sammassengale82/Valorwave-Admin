@@ -6,9 +6,16 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: linear-gradient(120deg, #0a1a33, #11284d, #1a3a6b);
+  background-size: 300% 300%;
+  animation: waveMove 12s ease infinite;
   color: var(--text);
-  transition: background .2s ease, color .2s ease;
+}
+
+@keyframes waveMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .login-container {
@@ -44,6 +51,7 @@ body {
 }
 
 input[type="password"],
+input[type="text"],
 .theme-select {
   width: 100%;
   padding: 12px;
@@ -77,6 +85,31 @@ button {
   margin-top: 14px;
   color: #ff6b6b;
   font-size: 14px;
+}
+
+.forgot-link {
+  margin-top: 14px;
+  cursor: pointer;
+  color: var(--accent);
+}
+
+/* MODAL */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-box {
+  background: var(--panel);
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  width: 340px;
+  text-align: center;
 }
 
 /* THEMES */
@@ -115,27 +148,4 @@ button {
   --accent: #d72638;
   --border: #1a3a6b;
   --input-bg: #11284d;
-}
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-box {
-  background: var(--panel);
-  padding: 30px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  width: 340px;
-  text-align: center;
-}
-
-.forgot-link {
-  margin-top: 14px;
-  cursor: pointer;
-  color: var(--accent);
 }
