@@ -29,6 +29,33 @@ document.getElementById("loginBtn").onclick = () => {
   } else {
     error.innerText = "Incorrect password.";
   }
+/* FORGOT PASSWORD FLOW */
+document.getElementById("forgotLink").onclick = () => {
+  document.getElementById("resetModal").style.display = "flex";
+};
+
+document.getElementById("closeReset").onclick = () => {
+  document.getElementById("resetModal").style.display = "none";
+};
+
+document.getElementById("resetPassBtn").onclick = () => {
+  const masterKey = "ValorWaveMasterReset2026"; // set your master key
+  const inputKey = document.getElementById("resetKeyInput").value;
+  const newPass = document.getElementById("newPassInput").value;
+
+  if (inputKey !== masterKey) {
+    document.getElementById("resetError").innerText = "Invalid reset key.";
+    return;
+  }
+
+  if (newPass.length < 6) {
+    document.getElementById("resetError").innerText = "Password too short.";
+    return;
+  }
+};
+  localStorage.setItem("cms-password", newPass);
+  alert("Password reset successfully.");
+  document.getElementById("resetModal").style.display = "none";
 };
 
 /* AUTO-REDIRECT IF ALREADY LOGGED IN */
