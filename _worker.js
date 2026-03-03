@@ -1,7 +1,9 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const path = url.pathname;
+
+    // Normalize path (Cloudflare sometimes rewrites paths)
+    const path = url.pathname.toLowerCase();
 
     // CORS preflight
     if (request.method === "OPTIONS") {
@@ -11,40 +13,38 @@ export default {
       });
     }
 
-    // draft.json
-    if (path === "/draft.json" && request.method === "GET") {
+    // -------- JSON ROUTES --------
+    if (path.endsWith("/draft.json") && request.method === "GET") {
       return handleGet(env, "draft.json");
     }
-    if (path === "/draft.json" && request.method === "PUT") {
+    if (path.endsWith("/draft.json") && request.method === "PUT") {
       return handlePut(request, env, "draft.json");
     }
 
-    // publish.json
-    if (path === "/publish.json" && request.method === "GET") {
+    if (path.endsWith("/publish.json") && request.method === "GET") {
       return handleGet(env, "publish.json");
     }
-    if (path === "/publish.json" && request.method === "PUT") {
+    if (path.endsWith("/publish.json") && request.method === "PUT") {
       return handlePut(request, env, "publish.json");
     }
 
-    // site-theme.txt
-    if (path === "/site-theme.txt" && request.method === "GET") {
+    // -------- THEME ROUTES --------
+    if (path.endsWith("/site-theme.txt") && request.method === "GET") {
       return handleGet(env, "site-theme.txt");
     }
-    if (path === "/site-theme.txt" && request.method === "PUT") {
+    if (path.endsWith("/site-theme.txt") && request.method === "PUT") {
       return handlePut(request, env, "site-theme.txt");
     }
 
-    // cms-theme.txt
-    if (path === "/cms-theme.txt" && request.method === "GET") {
+    if (path.endsWith("/cms-theme.txt") && request.method === "GET") {
       return handleGet(env, "cms-theme.txt");
     }
-    if (path === "/cms-theme.txt" && request.method === "PUT") {
+    if (path.endsWith("/cms-theme.txt") && request.method === "PUT") {
       return handlePut(request, env, "cms-theme.txt");
     }
 
-    // image upload
-    if (path === "/upload" && request.method === "POST") {
+    // -------- IMAGE UPLOAD --------
+    if (path.endsWith("/upload") && request.method === "POST") {
       return handleUpload(request, env);
     }
 
@@ -58,13 +58,12 @@ export default {
 // -----------------------------
 // GitHub API Helpers
 // -----------------------------
-
 async function handleGet(env, filename) {
   const apiUrl = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
 
   const res = await fetch(apiUrl, {
     headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
       "User-Agent": "Valorwave-Worker"
     }
   });
@@ -92,9 +91,10 @@ async function handlePut(request, env, filename) {
   const body = await request.text();
   const apiUrl = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
 
+  // Get SHA for existing file
   const existing = await fetch(apiUrl, {
     headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
       "User-Agent": "Valorwave-Worker"
     }
   });
@@ -114,7 +114,7 @@ async function handlePut(request, env, filename) {
   const update = await fetch(apiUrl, {
     method: "PUT",
     headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
       "User-Agent": "Valorwave-Worker",
       "Content-Type": "application/json"
     },
@@ -162,7 +162,7 @@ async function handleUpload(request, env) {
   const upload = await fetch(apiUrl, {
     method: "PUT",
     headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
       "User-Agent": "Valorwave-Worker",
       "Content-Type": "application/json"
     },
