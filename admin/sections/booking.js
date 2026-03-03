@@ -1,8 +1,7 @@
-// /admin/sections/booking.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const site = ensure(CURRENT, "site", {});
+export function render(container, data) {
+  const site = ensure(data, "site", {});
   const booking = ensure(site, "booking", {
     url: ""
   });
@@ -14,5 +13,7 @@ export function build(CURRENT) {
   bindInput(url, booking, "url");
   wrap.appendChild(url);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
