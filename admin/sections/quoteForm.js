@@ -1,8 +1,7 @@
-// /admin/sections/quoteForm.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const site = ensure(CURRENT, "site", {});
+export function render(container, data) {
+  const site = ensure(data, "site", {});
   const forms = ensure(site, "forms", {});
   const quote = ensure(forms, "quote", {
     subject: "",
@@ -31,9 +30,9 @@ export function build(CURRENT) {
   wrap.appendChild(replyto);
 
   wrap.appendChild(el("label", {}, "Auto-Response Message"));
-  const autoresponse = el("textarea");
-  bindInput(autoresponse, quote, "autoresponse");
-  wrap.appendChild(autoresponse);
+  const auto = el("textarea");
+  bindInput(auto, quote, "autoresponse");
+  wrap.appendChild(auto);
 
   wrap.appendChild(el("label", {}, "Next Page URL"));
   const next = el("input", { type: "text" });
@@ -41,9 +40,11 @@ export function build(CURRENT) {
   wrap.appendChild(next);
 
   wrap.appendChild(el("label", {}, "Submit Button Text"));
-  const submitText = el("input", { type: "text" });
-  bindInput(submitText, quote, "submit_text");
-  wrap.appendChild(submitText);
+  const submit = el("input", { type: "text" });
+  bindInput(submit, quote, "submit_text");
+  wrap.appendChild(submit);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
