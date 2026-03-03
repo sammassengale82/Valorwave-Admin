@@ -1,67 +1,50 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
-    // Normalize path (Cloudflare sometimes rewrites paths)
     const path = url.pathname.toLowerCase();
 
-    // CORS preflight
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders()
-      });
+      return new Response(null, { status: 204, headers: cors() });
     }
 
-    // -------- JSON ROUTES --------
-    if (path.endsWith("/draft.json") && request.method === "GET") {
-      return handleGet(env, "draft.json");
-    }
-    if (path.endsWith("/draft.json") && request.method === "PUT") {
-      return handlePut(request, env, "draft.json");
+    // GET draft.json
+    if (path.includes("draft.json") && request.method === "GET") {
+      return getFile(env, "draft.json");
     }
 
-    if (path.endsWith("/publish.json") && request.method === "GET") {
-      return handleGet(env, "publish.json");
-    }
-    if (path.endsWith("/publish.json") && request.method === "PUT") {
-      return handlePut(request, env, "publish.json");
+    // PUT draft.json
+    if (path.includes("draft.json") && request.method === "PUT") {
+      return putFile(request, env, "draft.json");
     }
 
-    // -------- THEME ROUTES --------
-    if (path.endsWith("/site-theme.txt") && request.method === "GET") {
-      return handleGet(env, "site-theme.txt");
-    }
-    if (path.endsWith("/site-theme.txt") && request.method === "PUT") {
-      return handlePut(request, env, "site-theme.txt");
+    // GET publish.json
+    if (path.includes("publish.json") && request.method === "GET") {
+      return getFile(env, "publish.json");
     }
 
-    if (path.endsWith("/cms-theme.txt") && request.method === "GET") {
-      return handleGet(env, "cms-theme.txt");
-    }
-    if (path.endsWith("/cms-theme.txt") && request.method === "PUT") {
-      return handlePut(request, env, "cms-theme.txt");
+    // PUT publish.json
+    if (path.includes("publish.json") && request.method === "PUT") {
+      return putFile(request, env, "publish.json");
     }
 
-    // -------- IMAGE UPLOAD --------
-    if (path.endsWith("/upload") && request.method === "POST") {
-      return handleUpload(request, env);
+    // PUBLISH ACTION: copy draft → publish
+    if (path.includes("publish") && request.method === "POST") {
+      return publish(env);
     }
 
-    return new Response("Not Found", {
-      status: 404,
-      headers: corsHeaders()
-    });
+    // IMAGE UPLOAD
+    if (path.includes("upload") && request.method === "POST") {
+      return upload(request, env);
+    }
+
+    return new Response("Not Found", { status: 404, headers: cors() });
   }
 };
 
-// -----------------------------
-// GitHub API Helpers
-// -----------------------------
-async function handleGet(env, filename) {
-  const apiUrl = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
+async function getFile(env, filename) {
+  const api = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
 
-  const res = await fetch(apiUrl, {
+  const res = await fetch(api, {
     headers: {
       "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
       "User-Agent": "Valorwave-Worker"
@@ -69,10 +52,7 @@ async function handleGet(env, filename) {
   });
 
   if (!res.ok) {
-    return new Response("GitHub GET failed", {
-      status: res.status,
-      headers: corsHeaders()
-    });
+    return new Response("GitHub GET failed", { status: res.status, headers: cors() });
   }
 
   const json = await res.json();
@@ -80,19 +60,15 @@ async function handleGet(env, filename) {
 
   return new Response(content, {
     status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      ...corsHeaders()
-    }
+    headers: { "Content-Type": "application/json", ...cors() }
   });
 }
 
-async function handlePut(request, env, filename) {
+async function putFile(request, env, filename) {
   const body = await request.text();
-  const apiUrl = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
+  const api = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
 
-  // Get SHA for existing file
-  const existing = await fetch(apiUrl, {
+  const existing = await fetch(api, {
     headers: {
       "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
       "User-Agent": "Valorwave-Worker"
@@ -111,7 +87,7 @@ async function handlePut(request, env, filename) {
     sha
   };
 
-  const update = await fetch(apiUrl, {
+  const update = await fetch(api, {
     method: "PUT",
     headers: {
       "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
@@ -122,44 +98,39 @@ async function handlePut(request, env, filename) {
   });
 
   if (!update.ok) {
-    return new Response("GitHub PUT failed", {
-      status: update.status,
-      headers: corsHeaders()
-    });
+    return new Response("GitHub PUT failed", { status: update.status, headers: cors() });
   }
 
-  return new Response("OK", {
-    status: 200,
-    headers: corsHeaders()
-  });
+  return new Response("OK", { status: 200, headers: cors() });
 }
 
-// -----------------------------
-// Image Upload Handler
-// -----------------------------
-async function handleUpload(request, env) {
+async function publish(env) {
+  const draft = await getFile(env, "draft.json");
+  const body = await draft.text();
+
+  return putFile(new Request("", { body, method: "PUT" }), env, "publish.json");
+}
+
+async function upload(request, env) {
   const form = await request.formData();
   const file = form.get("file");
 
   if (!file) {
-    return new Response("No file uploaded", {
-      status: 400,
-      headers: corsHeaders()
-    });
+    return new Response("No file uploaded", { status: 400, headers: cors() });
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+  const buffer = await file.arrayBuffer();
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
   const filename = `uploads/${Date.now()}-${file.name}`;
-  const apiUrl = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
+  const api = `https://api.github.com/repos/${env.GITHUB_USER}/${env.GITHUB_REPO}/contents/${filename}`;
 
   const payload = {
     message: `Upload ${filename}`,
     content: base64
   };
 
-  const upload = await fetch(apiUrl, {
+  const upload = await fetch(api, {
     method: "PUT",
     headers: {
       "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
@@ -170,28 +141,19 @@ async function handleUpload(request, env) {
   });
 
   if (!upload.ok) {
-    return new Response("Upload failed", {
-      status: upload.status,
-      headers: corsHeaders()
-    });
+    return new Response("Upload failed", { status: upload.status, headers: cors() });
   }
 
   return new Response(JSON.stringify({ url: filename }), {
     status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      ...corsHeaders()
-    }
+    headers: { "Content-Type": "application/json", ...cors() }
   });
 }
 
-// -----------------------------
-// CORS Headers
-// -----------------------------
-function corsHeaders() {
+function cors() {
   return {
-    "Access-Control-Allow-Origin": "https://sammassengale82.github.io",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+    "Access-Control-Allow-Origin": "https://admin.valorwaveentertainment.com",
+    "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization"
   };
 }
