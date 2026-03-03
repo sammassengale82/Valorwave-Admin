@@ -1,0 +1,139 @@
+/* ============================================================
+   Valor Wave CMS 2.0 — Unified Theme System (Phase 14)
+   ------------------------------------------------------------
+   CMS Themes (admin interface):
+     body.theme-original
+     body.theme-multicam
+     body.theme-patriotic
+     body.dark
+
+   Site Themes (inside Visual Editor iframe):
+     .site-theme-original
+     .site-theme-multicam
+     .site-theme-patriotic
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   CMS THEMES (ADMIN UI)
+------------------------------------------------------------ */
+
+/* ORIGINAL */
+body.theme-original {
+  --bg: #1a1a1a;
+  --panel: #222;
+  --border: #333;
+  --text: #eee;
+  --accent: #4da3ff;
+}
+
+/* ARMY MULTICAM */
+body.theme-multicam {
+  --bg: #2b2a27;
+  --panel: #3a392f;
+  --border: #4a493f;
+  --text: #e8e3d3;
+  --accent: #b5a76a;
+}
+
+/* PATRIOTIC */
+body.theme-patriotic {
+  --bg: #0b1a33;
+  --panel: #11284d;
+  --border: #1c3a66;
+  --text: #e6e9f2;
+  --accent: #d62828;
+}
+
+/* DARK MODE OVERRIDE */
+body.dark {
+  --bg: #000;
+  --panel: #111;
+  --border: #222;
+  --text: #ddd;
+  --accent: #4da3ff;
+}
+
+/* CMS GLOBAL APPLICATION */
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+#sidebar,
+#toolbar,
+#status-bar,
+.modal-content,
+#theme-panel {
+  background: var(--panel);
+  border-color: var(--border);
+}
+
+#toolbar button,
+.sidebar-header button,
+#sidebar-toggle,
+#dark-mode-toggle {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+#toolbar button:hover,
+.sidebar-header button:hover,
+#sidebar-toggle:hover,
+#dark-mode-toggle:hover {
+  background: var(--border);
+}
+
+#drop-zone {
+  border-color: var(--border);
+}
+
+#drop-zone.dragover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#upload-progress-bar {
+  background: var(--accent);
+}
+
+a {
+  color: var(--accent);
+}
+
+
+/* ------------------------------------------------------------
+   SITE THEMES (INSIDE VISUAL EDITOR IFRAME)
+------------------------------------------------------------ */
+
+.site-theme-original {
+  --site-bg: #ffffff;
+  --site-text: #111111;
+  --site-accent: #4da3ff;
+  background: var(--site-bg);
+  color: var(--site-text);
+}
+
+.site-theme-multicam {
+  --site-bg: #f4f1e5;
+  --site-text: #2b2a27;
+  --site-accent: #b5a76a;
+  background: var(--site-bg);
+  color: var(--site-text);
+}
+
+.site-theme-patriotic {
+  --site-bg: #f5f7fb;
+  --site-text: #0b1a33;
+  --site-accent: #d62828;
+  background: var(--site-bg);
+  color: var(--site-text);
+}
+
+/* Site link colors */
+.site-theme-original a,
+.site-theme-multicam a,
+.site-theme-patriotic a {
+  color: var(--site-accent);
+}
