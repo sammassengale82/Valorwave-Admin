@@ -1,8 +1,7 @@
-// /admin/sections/bio.js
 import { el, bindInput, ensure, setDirty } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const bio = ensure(home, "bio", {
     title: "",
     image_url: "",
@@ -31,16 +30,11 @@ export function build(CURRENT) {
   wrap.appendChild(alt);
 
   wrap.appendChild(el("label", {}, "Name Line"));
-  const nameLine = el("input", { type: "text" });
-  bindInput(nameLine, bio, "name_line");
-  wrap.appendChild(nameLine);
+  const name = el("input", { type: "text" });
+  bindInput(name, bio, "name_line");
+  wrap.appendChild(name);
 
   const addBtn = el("button", { class: "btn primary" }, "Add Paragraph");
-  addBtn.addEventListener("click", () => {
-    bio.paragraphs.push({ text: "" });
-    setDirty(true);
-    rerender();
-  });
   wrap.appendChild(addBtn);
 
   const list = el("div");
@@ -52,23 +46,31 @@ export function build(CURRENT) {
     bio.paragraphs.forEach((p, i) => {
       const card = el("div", { class: "card" });
 
-      card.appendChild(el("label", {}, "Paragraph Text"));
-      const text = el("textarea");
-      bindInput(text, p, "text");
-      card.appendChild(text);
+      card.appendChild(el("label", {}, "Paragraph"));
+      const txt = el("textarea");
+      bindInput(txt, p, "text");
+      card.appendChild(txt);
 
-      const remove = el("button", { class: "btn danger" }, "Remove");
-      remove.addEventListener("click", () => {
+      const del = el("button", { class: "btn danger" }, "Delete");
+      del.addEventListener("click", () => {
         bio.paragraphs.splice(i, 1);
         setDirty(true);
         rerender();
       });
-      card.appendChild(remove);
+      card.appendChild(del);
 
       list.appendChild(card);
     });
   }
 
+  addBtn.addEventListener("click", () => {
+    bio.paragraphs.push({ text: "" });
+    setDirty(true);
+    rerender();
+  });
+
   rerender();
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
