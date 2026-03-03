@@ -1,8 +1,7 @@
-// /admin/sections/serviceArea.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const sa = ensure(home, "service_area", {
     title: "",
     html: ""
@@ -20,5 +19,7 @@ export function build(CURRENT) {
   bindInput(html, sa, "html");
   wrap.appendChild(html);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
