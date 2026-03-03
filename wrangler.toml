@@ -1,8 +1,13 @@
 name = "valorwave-admin-worker"
 main = "_worker.js"
 compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
-GITHUB_CLIENT_ID ="Ov23lihmfzwhx2UQraRM"
+GITHUB_OWNER = "sammassengale82"
+GITHUB_REPO = "Valorwave-Admin"
+GITHUB_BRANCH = "main"
+
+GITHUB_CLIENT_ID = "Ov23lihmfzwhx2UQraRM"
 WORKER_DOMAIN = "valorwave-admin-worker.sammassengale82.workers.dev"
-CALLBACK_URL = "https://valorwave-admin-worker.sammassengale82.workers.dev/oauth/callback
+CALLBACK_URL = "https://valorwave-admin-worker.sammassengale82.workers.dev/oauth/callback"
