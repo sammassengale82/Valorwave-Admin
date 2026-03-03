@@ -95,7 +95,7 @@ function attachUI() {
   });
 
 document.getElementById("extractWebsite").addEventListener("click", () => {
-  import("./cms-extract.js").then(m => m.extractCMS());
+  import("./cms-extract-v2.js").then(m => m.extractCMS());
 });
 }
 
