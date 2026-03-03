@@ -93,6 +93,10 @@ function attachUI() {
     await saveSiteTheme(theme);
     alert("Site Theme saved.");
   });
+
+document.getElementById("extractWebsite").addEventListener("click", () => {
+  import("./cms-extract.js").then(m => m.extractCMS());
+});
 }
 
 // ---------------------------------------------
