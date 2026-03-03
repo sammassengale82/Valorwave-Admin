@@ -1,5 +1,4 @@
-// /admin/sections/hero.js
-import { el, bindInput, ensure, setDirty } from "../state.js";
+import { el, bindInput, ensure } from "../state.js";
 
 export function render(container, data) {
   const home = ensure(data, "home", {});
