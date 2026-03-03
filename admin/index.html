@@ -1,3 +1,7 @@
+if (localStorage.getItem("cms-auth") !== "true") {
+  window.location.href = "/admin/login.html";
+}
+
 <!DOCTYPE html>
 <html lang="en" data-theme="original">
 <head>
