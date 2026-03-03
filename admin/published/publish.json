@@ -1,0 +1,100 @@
+{
+  "site": {
+    "header": {
+      "logo_url": "",
+      "business_name": "",
+      "nav_links": [],
+      "cta": { "label": "", "url": "" },
+      "social": { "facebook": "", "instagram": "", "tiktok": "" },
+      "quicknav": []
+    },
+    "footer": { "text": "", "year": "" },
+    "seo": {
+      "title": "",
+      "description": "",
+      "og_title": "",
+      "og_description": "",
+      "og_image": "",
+      "twitter_title": "",
+      "twitter_description": "",
+      "twitter_image": "",
+      "canonical": "",
+      "robots": ""
+    },
+    "analytics": { "ga4_id": "" },
+    "booking": { "url": "" },
+    "forms": {
+      "quote": {
+        "subject": "",
+        "template": "",
+        "replyto": "",
+        "autoresponse": "",
+        "next": "",
+        "submit_text": ""
+      },
+      "testimonial": {
+        "email": "",
+        "next": "",
+        "submit_text": ""
+      }
+    }
+  },
+
+  "home": {
+    "hero": {
+      "headline": "",
+      "kicker": "",
+      "tagline": "",
+      "subline": "",
+      "button": { "text": "", "url": "" }
+    },
+    "hero_discount": {
+      "title": "",
+      "subtitle": "",
+      "text": "",
+      "note": ""
+    },
+    "quote_banner": {
+      "headline": "",
+      "subtext": "",
+      "button_text": "",
+      "button_url": ""
+    },
+    "services": { "title": "", "items": [] },
+    "gallery": { "title": "", "images": [] },
+    "faqs": [],
+    "clients_say_section": { "title": "" },
+    "clients_say": [],
+    "chattanooga": {
+      "title": "",
+      "image_url": "",
+      "image_alt": "",
+      "intro": "",
+      "cards": []
+    },
+    "bio": {
+      "title": "",
+      "image_url": "",
+      "image_alt": "",
+      "name_line": "",
+      "paragraphs": []
+    },
+    "brand": {
+      "title": "",
+      "image_url": "",
+      "image_alt": "",
+      "paragraphs": []
+    },
+    "calendar": { "embed_url": "" },
+    "service_area": { "title": "", "html": "" },
+    "testimonial_section": {
+      "title": "",
+      "permission_label": "",
+      "note_text": ""
+    },
+    "legal": {
+      "title": "",
+      "html": ""
+    }
+  }
+}
