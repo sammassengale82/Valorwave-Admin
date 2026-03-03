@@ -1,4 +1,3 @@
-// /admin/sections/header.js
 import { el, bindInput, ensure, setDirty } from "../state.js";
 
 export function render(container, data) {
@@ -31,6 +30,4 @@ export function render(container, data) {
   container.appendChild(wrap);
 }
 
-export function save(data) {
-  // No-op: data is already mutated by bindInput
-}
+export function save(data) {}
