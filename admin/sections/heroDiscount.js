@@ -1,8 +1,7 @@
-// /admin/sections/heroDiscount.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const hd = ensure(home, "hero_discount", {
     title: "",
     subtitle: "",
@@ -27,10 +26,12 @@ export function build(CURRENT) {
   bindInput(text, hd, "text");
   wrap.appendChild(text);
 
-  wrap.appendChild(el("label", {}, "Note Text"));
+  wrap.appendChild(el("label", {}, "Note"));
   const note = el("textarea");
   bindInput(note, hd, "note");
   wrap.appendChild(note);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
