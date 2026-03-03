@@ -1,8 +1,7 @@
-// /admin/sections/clientsSay.js
 import { el, bindInput, ensure, setDirty } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const section = ensure(home, "clients_say_section", {
     title: ""
   });
@@ -18,44 +17,47 @@ export function build(CURRENT) {
   wrap.appendChild(title);
 
   const addBtn = el("button", { class: "btn primary" }, "Add Testimonial");
-  addBtn.addEventListener("click", () => {
-    list.push({ text: "", name: "" });
-    setDirty(true);
-    rerender();
-  });
   wrap.appendChild(addBtn);
 
-  const container = el("div");
-  wrap.appendChild(container);
+  const containerList = el("div");
+  wrap.appendChild(containerList);
 
   function rerender() {
-    container.innerHTML = "";
+    containerList.innerHTML = "";
 
     list.forEach((item, i) => {
       const card = el("div", { class: "card" });
-
-      card.appendChild(el("label", {}, "Testimonial Text"));
-      const text = el("textarea");
-      bindInput(text, item, "text");
-      card.appendChild(text);
 
       card.appendChild(el("label", {}, "Name"));
       const name = el("input", { type: "text" });
       bindInput(name, item, "name");
       card.appendChild(name);
 
-      const remove = el("button", { class: "btn danger" }, "Remove");
-      remove.addEventListener("click", () => {
+      card.appendChild(el("label", {}, "Testimonial Text"));
+      const text = el("textarea");
+      bindInput(text, item, "text");
+      card.appendChild(text);
+
+      const del = el("button", { class: "btn danger" }, "Delete");
+      del.addEventListener("click", () => {
         list.splice(i, 1);
         setDirty(true);
         rerender();
       });
-      card.appendChild(remove);
+      card.appendChild(del);
 
-      container.appendChild(card);
+      containerList.appendChild(card);
     });
   }
 
+  addBtn.addEventListener("click", () => {
+    list.push({ name: "", text: "" });
+    setDirty(true);
+    rerender();
+  });
+
   rerender();
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
