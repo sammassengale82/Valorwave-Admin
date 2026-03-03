@@ -1,15 +1,14 @@
-// /admin/sections/submitTestimonial.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const section = ensure(home, "testimonial_section", {
     title: "",
     permission_label: "",
     note_text: ""
   });
 
-  const site = ensure(CURRENT, "site", {});
+  const site = ensure(data, "site", {});
   const forms = ensure(site, "forms", {});
   const testimonial = ensure(forms, "testimonial", {
     email: "",
@@ -34,7 +33,7 @@ export function build(CURRENT) {
   bindInput(note, section, "note_text");
   wrap.appendChild(note);
 
-  wrap.appendChild(el("label", {}, "Form Email Recipient"));
+  wrap.appendChild(el("label", {}, "Notification Email"));
   const email = el("input", { type: "text" });
   bindInput(email, testimonial, "email");
   wrap.appendChild(email);
@@ -49,5 +48,7 @@ export function build(CURRENT) {
   bindInput(submit, testimonial, "submit_text");
   wrap.appendChild(submit);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
