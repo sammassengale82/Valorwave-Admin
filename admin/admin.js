@@ -19,7 +19,6 @@ import * as clientsSay from "./sections/clientsSay.js";
 import * as submitTestimonial from "./sections/submitTestimonial.js";
 import * as booking from "./sections/booking.js";
 import * as quoteForm from "./sections/quoteForm.js";
-import * as legal from "./sections/legal.js";
 import * as serviceArea from "./sections/serviceArea.js";
 import * as seo from "./sections/seo.js";
 import * as analytics from "./sections/analytics.js";
