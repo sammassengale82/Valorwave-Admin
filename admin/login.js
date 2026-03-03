@@ -15,20 +15,39 @@ document.getElementById("togglePass").onchange = e => {
   input.type = e.target.checked ? "text" : "password";
 };
 
-/* LOGIN */
+/* LOGIN WITH 2FA */
 document.getElementById("loginBtn").onclick = () => {
   const pass = document.getElementById("passwordInput").value;
   const error = document.getElementById("errorMsg");
 
-  // Set your CMS password here
-  const correctPassword = "ValorWaveCMS2026";
+  const storedPass = localStorage.getItem("cms-password") || "ValorWaveCMS2026";
 
-  if (pass === correctPassword) {
+  if (pass !== storedPass) {
+    error.innerText = "Incorrect password.";
+    return;
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  localStorage.setItem("cms-2fa-code", code);
+
+  console.log("2FA CODE:", code);
+
+  document.getElementById("twoFactorScreen").style.display = "flex";
+};
+
+document.getElementById("verify2FA").onclick = () => {
+  const input = document.getElementById("twoFactorInput").value;
+  const real = localStorage.getItem("cms-2fa-code");
+
+  if (input === real) {
     localStorage.setItem("cms-auth", "true");
+    localStorage.removeItem("cms-2fa-code");
     window.location.href = "/admin/admin.html";
   } else {
-    error.innerText = "Incorrect password.";
+    document.getElementById("twoFactorError").innerText = "Invalid code.";
   }
+};
+
 /* FORGOT PASSWORD FLOW */
 document.getElementById("forgotLink").onclick = () => {
   document.getElementById("resetModal").style.display = "flex";
@@ -39,7 +58,7 @@ document.getElementById("closeReset").onclick = () => {
 };
 
 document.getElementById("resetPassBtn").onclick = () => {
-  const masterKey = "ValorWaveMasterReset2026"; // set your master key
+  const masterKey = "ValorWaveMasterReset2026";
   const inputKey = document.getElementById("resetKeyInput").value;
   const newPass = document.getElementById("newPassInput").value;
 
@@ -52,7 +71,7 @@ document.getElementById("resetPassBtn").onclick = () => {
     document.getElementById("resetError").innerText = "Password too short.";
     return;
   }
-};
+
   localStorage.setItem("cms-password", newPass);
   alert("Password reset successfully.");
   document.getElementById("resetModal").style.display = "none";
