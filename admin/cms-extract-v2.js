@@ -3,7 +3,7 @@
 export async function extractCMS() {
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
-  iframe.src = "https;//valorwaveentertainment.com/";
+  iframe.src = "https://valorwaveentertainment.com/";
   document.body.appendChild(iframe);
 
   await new Promise(res => iframe.onload = res);
