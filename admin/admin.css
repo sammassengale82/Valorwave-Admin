@@ -1,4 +1,3 @@
-/* BASE */
 * {
   box-sizing: border-box;
   font-family: Arial, sans-serif;
@@ -68,6 +67,11 @@ body {
   background: var(--panel);
   border-right: 1px solid var(--border);
   overflow-y: auto;
+}
+
+#editorPanel h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
 }
 
 #editorPanel textarea {
