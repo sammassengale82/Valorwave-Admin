@@ -12,22 +12,22 @@ export default {
     }
 
     // Route: GET draft.json
-    if (path === "/drafts" && request.method === "GET") {
+    if (path === "/draft.json" && request.method === "GET") {
       return handleGet(env, "draft.json");
     }
 
     // Route: PUT draft.json
-    if (path === "/drafts" && request.method === "PUT") {
+    if (path === "/draft.json" && request.method === "PUT") {
       return handlePut(request, env, "draft.json");
     }
 
     // Route: GET publish.json
-    if (path === "/publish" && request.method === "GET") {
+    if (path === "/publish.json" && request.method === "GET") {
       return handleGet(env, "publish.json");
     }
 
     // Route: PUT publish.json
-    if (path === "/publish" && request.method === "PUT") {
+    if (path === "/publish.json" && request.method === "PUT") {
       return handlePut(request, env, "publish.json");
     }
 
