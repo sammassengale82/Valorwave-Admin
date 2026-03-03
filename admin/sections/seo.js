@@ -1,72 +1,74 @@
-import { el, bindInput, ensure } from "../state.js";
+// seo.js — Valorwave Public Site SEO Renderer
 
-export function render(container, data) {
-  const seo = ensure(data, "site.seo", {
-    title: "",
-    description: "",
-    og_title: "",
-    og_description: "",
-    og_image: "",
-    twitter_title: "",
-    twitter_description: "",
-    twitter_image: "",
-    canonical: "",
-    robots: ""
-  });
+export function seo(seoData) {
+  if (!seoData) return;
 
-  const wrap = el("div");
+  // -----------------------------
+  // Helpers
+  // -----------------------------
+  function setMeta(name, content) {
+    if (!content) return;
+    let tag = document.querySelector(`meta[name="${name}"]`);
+    if (!tag) {
+      tag = document.createElement("meta");
+      tag.setAttribute("name", name);
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute("content", content);
+  }
 
-  wrap.appendChild(el("label", {}, "Page Title"));
-  const title = el("input", { type: "text" });
-  bindInput(title, seo, "title");
-  wrap.appendChild(title);
+  function setOG(property, content) {
+    if (!content) return;
+    let tag = document.querySelector(`meta[property="${property}"]`);
+    if (!tag) {
+      tag = document.createElement("meta");
+      tag.setAttribute("property", property);
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute("content", content);
+  }
 
-  wrap.appendChild(el("label", {}, "Meta Description"));
-  const desc = el("textarea");
-  bindInput(desc, seo, "description");
-  wrap.appendChild(desc);
+  function setCanonical(url) {
+    if (!url) return;
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.setAttribute("rel", "canonical");
+      document.head.appendChild(link);
+    }
+    link.setAttribute("href", url);
+  }
 
-  wrap.appendChild(el("label", {}, "OG Title"));
-  const ogt = el("input", { type: "text" });
-  bindInput(ogt, seo, "og_title");
-  wrap.appendChild(ogt);
+  // -----------------------------
+  // Title
+  // -----------------------------
+  if (seoData.title) {
+    document.title = seoData.title;
+  }
 
-  wrap.appendChild(el("label", {}, "OG Description"));
-  const ogd = el("textarea");
-  bindInput(ogd, seo, "og_description");
-  wrap.appendChild(ogd);
+  // -----------------------------
+  // Basic SEO
+  // -----------------------------
+  setMeta("description", seoData.description);
+  setMeta("keywords", seoData.keywords);
+  setMeta("robots", seoData.robots);
 
-  wrap.appendChild(el("label", {}, "OG Image URL"));
-  const ogi = el("input", { type: "text" });
-  bindInput(ogi, seo, "og_image");
-  wrap.appendChild(ogi);
+  // -----------------------------
+  // Canonical
+  // -----------------------------
+  setCanonical(seoData.canonical);
 
-  wrap.appendChild(el("label", {}, "Twitter Title"));
-  const twt = el("input", { type: "text" });
-  bindInput(twt, seo, "twitter_title");
-  wrap.appendChild(twt);
+  // -----------------------------
+  // Open Graph
+  // -----------------------------
+  setOG("og:title", seoData.og_title || seoData.title);
+  setOG("og:description", seoData.og_description || seoData.description);
+  setOG("og:image", seoData.og_image || seoData.image);
 
-  wrap.appendChild(el("label", {}, "Twitter Description"));
-  const twd = el("textarea");
-  bindInput(twd, seo, "twitter_description");
-  wrap.appendChild(twd);
-
-  wrap.appendChild(el("label", {}, "Twitter Image URL"));
-  const twi = el("input", { type: "text" });
-  bindInput(twi, seo, "twitter_image");
-  wrap.appendChild(twi);
-
-  wrap.appendChild(el("label", {}, "Canonical URL"));
-  const can = el("input", { type: "text" });
-  bindInput(can, seo, "canonical");
-  wrap.appendChild(can);
-
-  wrap.appendChild(el("label", {}, "Robots Meta Tag"));
-  const rob = el("input", { type: "text" });
-  bindInput(rob, seo, "robots");
-  wrap.appendChild(rob);
-
-  container.appendChild(wrap);
+  // -----------------------------
+  // Twitter
+  // -----------------------------
+  setMeta("twitter:title", seoData.twitter_title || seoData.title);
+  setMeta("twitter:description", seoData.twitter_description || seoData.description);
+  setMeta("twitter:image", seoData.twitter_image || seoData.image);
 }
-
-export function save(data) {}
