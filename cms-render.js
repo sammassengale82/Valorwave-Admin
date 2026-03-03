@@ -37,7 +37,7 @@ function renderAll(data) {
 
   // Site-level modules
   if (data.site) {
-    if (data.site.seo) SEO(data.site.seo);
+    if (data.site.seo) seo(data.site.seo);
     if (data.site.analytics) analytics(data.site.analytics);
     if (data.site.header) header(data.site.header);
     if (data.site.footer) footer(data.site.footer);
