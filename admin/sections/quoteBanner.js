@@ -1,8 +1,7 @@
-// /admin/sections/quoteBanner.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const qb = ensure(home, "quote_banner", {
     headline: "",
     subtext: "",
@@ -32,5 +31,7 @@ export function build(CURRENT) {
   bindInput(btnUrl, qb, "button_url");
   wrap.appendChild(btnUrl);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
