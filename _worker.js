@@ -1,36 +1,7 @@
 // /_worker.js
 
-// Static assets bundled by Wrangler
-import indexHtml from "./index.html";
-import adminHtml from "./admin.html";
-import adminCss from "./admin.css";
-import cmsRenderJs from "./cms-render.js";
-
-// Admin root files
-import adminJs from "./admin/admin.js";
-import stateJs from "./admin/state.js";
-import apiJs from "./admin/api.js";
-
-// Section modules (import so Wrangler bundles them)
-import headerJs from "./admin/sections/header.js";
-import footerJs from "./admin/sections/footer.js";
-import heroJs from "./admin/sections/hero.js";
-import servicesJs from "./admin/sections/services.js";
-import bioJs from "./admin/sections/bio.js";
-import chattanoogaJs from "./admin/sections/chattanooga.js";
-import brandJs from "./admin/sections/brand.js";
-import heroDiscountJs from "./admin/sections/heroDiscount.js";
-import quoteBannerJs from "./admin/sections/quoteBanner.js";
-import calendarJs from "./admin/sections/calendar.js";
-import faqJs from "./admin/sections/faq.js";
-import galleryJs from "./admin/sections/gallery.js";
-import clientsSayJs from "./admin/sections/clientsSay.js";
-import submitTestimonialJs from "./admin/sections/submitTestimonial.js";
-import bookingJs from "./admin/sections/booking.js";
-import quoteFormJs from "./admin/sections/quoteForm.js";
-import serviceAreaJs from "./admin/sections/serviceArea.js";
-import seoJs from "./admin/sections/seo.js";
-import analyticsJs from "./admin/sections/analytics.js";
+// Automatically bundle all static files in the repo
+const assets = import.meta.glob("./**/*", { as: "string" });
 
 // GitHub repo config
 const GITHUB_OWNER = "sammassengale82";
@@ -47,10 +18,16 @@ function jsonResponse(obj, status = 200) {
   });
 }
 
-function serveText(body, type) {
-  return new Response(body, {
-    headers: { "Content-Type": `${type}; charset=utf-8` }
-  });
+function getMimeType(path) {
+  if (path.endsWith(".html")) return "text/html";
+  if (path.endsWith(".css")) return "text/css";
+  if (path.endsWith(".js")) return "application/javascript";
+  if (path.endsWith(".png")) return "image/png";
+  if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+  if (path.endsWith(".svg")) return "image/svg+xml";
+  if (path.endsWith(".xml")) return "application/xml";
+  if (path.endsWith(".txt")) return "text/plain";
+  return "application/octet-stream";
 }
 
 // --- GitHub helpers --------------------------------------------------------
@@ -96,18 +73,12 @@ async function githubPutFile(env, path, content, message, sha = null) {
   if (!res.ok) throw new Error(`GitHub PUT failed: ${res.status}`);
 }
 
-// Load JSON from GitHub (draft/publish)
 async function getJsonFromGitHub(env, path) {
   const { exists, content } = await githubGetFile(env, path);
   if (!exists || !content) return {};
-  try {
-    return JSON.parse(content);
-  } catch {
-    return {};
-  }
+  try { return JSON.parse(content); } catch { return {}; }
 }
 
-// Save JSON to GitHub (draft/publish)
 async function putJsonToGitHub(env, path, value, message) {
   const current = await githubGetFile(env, path);
   const json = JSON.stringify(value, null, 2);
@@ -119,7 +90,10 @@ async function putJsonToGitHub(env, path, value, message) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const path = url.pathname;
+    let path = url.pathname;
+
+    // Normalize directory paths
+    if (path.endsWith("/")) path += "index.html";
 
     // API: draft
     if (path === "/api/draft") {
@@ -157,60 +131,14 @@ export default {
       return new Response("OK", { status: 200 });
     }
 
-    // Admin UI
-    if (path === "/admin" || path === "/admin/") {
-      return serveText(adminHtml, "text/html");
+    // Serve static assets
+    const key = "." + path;
+    if (assets[key]) {
+      const body = await assets[key]();
+      const type = getMimeType(path);
+      return new Response(body, { headers: { "Content-Type": type } });
     }
 
-    if (path === "/admin.css") {
-      return serveText(adminCss, "text/css");
-    }
-
-    if (path === "/cms-render.js") {
-      return serveText(cmsRenderJs, "application/javascript");
-    }
-
-    // Admin root JS
-    if (path === "/admin/admin.js") return serveText(adminJs, "application/javascript");
-    if (path === "/admin/state.js") return serveText(stateJs, "application/javascript");
-    if (path === "/admin/api.js") return serveText(apiJs, "application/javascript");
-
-    // Section modules
-    if (path.startsWith("/admin/sections/")) {
-      const map = {
-        "/admin/sections/header.js": headerJs,
-        "/admin/sections/footer.js": footerJs,
-        "/admin/sections/hero.js": heroJs,
-        "/admin/sections/services.js": servicesJs,
-        "/admin/sections/bio.js": bioJs,
-        "/admin/sections/chattanooga.js": chattanoogaJs,
-        "/admin/sections/brand.js": brandJs,
-        "/admin/sections/heroDiscount.js": heroDiscountJs,
-        "/admin/sections/quoteBanner.js": quoteBannerJs,
-        "/admin/sections/calendar.js": calendarJs,
-        "/admin/sections/faq.js": faqJs,
-        "/admin/sections/gallery.js": galleryJs,
-        "/admin/sections/clientsSay.js": clientsSayJs,
-        "/admin/sections/submitTestimonial.js": submitTestimonialJs,
-        "/admin/sections/booking.js": bookingJs,
-        "/admin/sections/quoteForm.js": quoteFormJs,
-        "/admin/sections/legal.js": legalJs,
-        "/admin/sections/serviceArea.js": serviceAreaJs,
-        "/admin/sections/seo.js": seoJs,
-        "/admin/sections/analytics.js": analyticsJs
-      };
-
-      const mod = map[path];
-      if (mod) return serveText(mod, "application/javascript");
-      return new Response("Not found", { status: 404 });
-    }
-
-    // Root page
-    if (path === "/" || path === "/index.html") {
-      return serveText(indexHtml, "text/html");
-    }
-
-    // Fallback
     return new Response("Not found", { status: 404 });
   }
 };
