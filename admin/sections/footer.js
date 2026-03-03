@@ -1,8 +1,7 @@
-// /admin/sections/footer.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const site = ensure(CURRENT, "site", {});
+export function render(container, data) {
+  const site = ensure(data, "site", {});
   const footer = ensure(site, "footer", {
     text: "",
     year: ""
@@ -20,5 +19,7 @@ export function build(CURRENT) {
   bindInput(year, footer, "year");
   wrap.appendChild(year);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
