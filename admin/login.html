@@ -32,7 +32,21 @@
       <p id="errorMsg" class="error"></p>
     </div>
   </div>
+<div id="resetModal" class="modal">
+  <div class="modal-box">
+    <h2>Reset CMS Password</h2>
+    <p>Enter the master reset key:</p>
 
+    <input type="password" id="resetKeyInput" placeholder="Master Reset Key">
+
+    <input type="password" id="newPassInput" placeholder="New Password">
+
+    <button id="resetPassBtn">Reset Password</button>
+    <button id="closeReset">Cancel</button>
+
+    <p id="resetError" class="error"></p>
+  </div>
+</div>
   <script src="login.js"></script>
 </body>
 </html>
