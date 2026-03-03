@@ -1,93 +1,90 @@
-// /cms-render.js
+// cms-render.js — Valorwave Public Site Renderer (Root‑Path Version)
 
 async function loadCMS() {
-  const res = await fetch("/admin/published/publish.json");
-  if (!res.ok) return;
-  const data = await res.json();
+  try {
+    const res = await fetch("/publish.json", { cache: "no-store" });
+    if (!res.ok) {
+      console.error("Failed to load publish.json");
+      return;
+    }
 
-  renderSEO(data.site.seo);
-  renderAnalytics(data.site.analytics);
-
-  renderHeader(data.site.header);
-  renderFooter(data.site.footer);
-
-  renderHero(data.home.hero);
-  renderServices(data.home.services);
-  renderBio(data.home.bio);
-  renderChattanooga(data.home.chattanooga);
-  renderBrand(data.home.brand);
-  renderHeroDiscount(data.home.hero_discount);
-  renderQuoteBanner(data.home.quote_banner);
-  renderCalendar(data.home.calendar);
-  renderFaq(data.home.faqs);
-  renderGallery(data.home.gallery);
-  renderClientsSay(data.home.clients_say);
-  renderServiceArea(data.home.service_area);
+    const data = await res.json();
+    renderAll(data);
+  } catch (err) {
+    console.error("CMS Load Error:", err);
+  }
 }
 
-function renderServiceArea(data) {
+// Optional: Draft preview mode
+async function loadDraft() {
+  try {
+    const res = await fetch("/draft.json", { cache: "no-store" });
+    if (!res.ok) {
+      console.warn("No draft.json found");
+      return;
+    }
+
+    const data = await res.json();
+    renderAll(data);
+  } catch (err) {
+    console.error("Draft Load Error:", err);
+  }
+}
+
+// Master render function
+function renderAll(data) {
   if (!data) return;
-  document.querySelector('#service-area h2').textContent = data.title || "";
-  document.querySelector('#service-area .service-area').innerHTML = data.html || "";
-}
 
-function renderSEO(seo) {
-  if (!seo) return;
-
-  document.title = seo.title || "";
-
-  const set = (selector, value) => {
-    const el = document.querySelector(selector);
-    if (el && value) el.content = value;
-  };
-
-  set('meta[name="description"]', seo.description);
-  set('meta[property="og:title"]', seo.og_title);
-  set('meta[property="og:description"]', seo.og_description);
-  set('meta[property="og:image"]', seo.og_image);
-  set('meta[name="twitter:title"]', seo.twitter_title);
-  set('meta[name="twitter:description"]', seo.twitter_description);
-  set('meta[name="twitter:image"]', seo.twitter_image);
-
-  if (seo.canonical) {
-    let link = document.querySelector('link[rel="canonical"]');
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "canonical";
-      document.head.appendChild(link);
-    }
-    link.href = seo.canonical;
+  // Site-level modules
+  if (data.site) {
+    if (data.site.seo) SEO(data.site.seo);
+    if (data.site.analytics) analytics(data.site.analytics);
+    if (data.site.header) header(data.site.header);
+    if (data.site.footer) footer(data.site.footer);
   }
 
-  if (seo.robots) {
-    let robots = document.querySelector('meta[name="robots"]');
-    if (!robots) {
-      robots = document.createElement("meta");
-      robots.name = "robots";
-      document.head.appendChild(robots);
-    }
-    robots.content = seo.robots;
+  // Home page modules
+  if (data.home) {
+    if (data.home.hero) hero(data.home.hero);
+    if (data.home.services) services(data.home.services);
+    if (data.home.bio) bio(data.home.bio);
+    if (data.home.chattanooga) chattanooga(data.home.chattanooga);
+    if (data.home.brand) brand(data.home.brand);
+    if (data.home.hero_discount) heroDiscount(data.home.hero_discount);
+    if (data.home.quote_banner) quoteBanner(data.home.quote_banner);
+    if (data.home.gallery) gallery(data.home.gallery);
+    if (data.home.faq) faq(data.home.faq);
+    if (data.home.clients_say) clientsSay(data.home.clients_say);
+    if (data.home.calendar) calendar(data.home.calendar);
+    if (data.home.service_area) serviceArea(data.home.service_area);
+    if (data.home.quote_form) quoteForm(data.home.quote_form);
+    if (data.home.submit_testimonial) submitTestimonial(data.home.submit_testimonial);
+    if (data.home.legal) legal(data.home.legal);
   }
 }
 
-function renderAnalytics(analytics) {
-  if (!analytics || !analytics.ga4_id) return;
-
-  const id = analytics.ga4_id;
-
-  const s1 = document.createElement("script");
-  s1.async = true;
-  s1.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
-  document.head.appendChild(s1);
-
-  const s2 = document.createElement("script");
-  s2.innerHTML = `
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '${id}');
-  `;
-  document.head.appendChild(s2);
+// Theme loading
+async function loadThemes() {
+  try {
+    const siteThemeRes = await fetch("/site-theme.txt", { cache: "no-store" });
+    if (siteThemeRes.ok) {
+      const theme = await siteThemeRes.text();
+      document.documentElement.setAttribute("data-theme", theme.trim());
+    }
+  } catch (err) {
+    console.error("Theme Load Error:", err);
+  }
 }
 
-loadCMS();
+// Auto-run on page load
+window.addEventListener("DOMContentLoaded", () => {
+  loadThemes();
+
+  // If you want preview mode:
+  const isPreview = window.location.search.includes("preview=true");
+  if (isPreview) {
+    loadDraft();
+  } else {
+    loadCMS();
+  }
+});
