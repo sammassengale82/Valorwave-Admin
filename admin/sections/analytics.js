@@ -1,17 +1,18 @@
-// /admin/sections/analytics.js
 import { el, bindInput, ensure } from "../state.js";
 
-export function build(CURRENT) {
-  const analytics = ensure(CURRENT, "site.analytics", {
+export function render(container, data) {
+  const analytics = ensure(data, "site.analytics", {
     ga4_id: ""
   });
 
   const wrap = el("div");
 
-  wrap.appendChild(el("label", {}, "Google Analytics GA4 ID (G-XXXXXXX)"));
+  wrap.appendChild(el("label", {}, "Google Analytics GA4 ID (G-XXXXXXXX)"));
   const id = el("input", { type: "text" });
   bindInput(id, analytics, "ga4_id");
   wrap.appendChild(id);
 
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
