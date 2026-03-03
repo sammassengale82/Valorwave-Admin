@@ -1,237 +1,160 @@
-/* -------------------------------------------------------
-   Base Layout
-------------------------------------------------------- */
-
-:root {
-  --bg: var(--panel);
-  --text: var(--text);
-  --border: var(--border);
-  --accent: var(--accent);
-  --accent-text: #fff;
-  --radius: 12px;
-  --sidebar-width: 240px;
-  --topbar-height: 64px;
-  --transition: 0.2s ease;
+/* BASE */
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
-html, body {
+body {
   margin: 0;
-  padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-  height: 100%;
-  overflow: hidden;
+  transition: background .2s ease, color .2s ease;
 }
 
-/* -------------------------------------------------------
-   Topbar
-------------------------------------------------------- */
-
-.topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--topbar-height);
+.cms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 14px;
-  z-index: 1000;
 }
 
-.topbar h1 {
-  font-size: 18px;
+.cms-header h1 {
   margin: 0;
-  font-weight: 700;
+  font-size: 22px;
 }
 
-.theme-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.theme-controls label {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-.theme-controls select,
-.theme-controls button {
-  padding: 6px 10px;
-  font-size: 13px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--text);
-}
-
-.status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#saveDraft,
-#publish {
+.cms-header button,
+.cms-header select {
+  margin-left: 10px;
   padding: 8px 14px;
-  border-radius: var(--radius);
+  border-radius: 8px;
   border: 1px solid var(--border);
-  background: var(--panel);
+  background: var(--panel-light);
   color: var(--text);
-  font-size: 14px;
+  cursor: pointer;
 }
 
-#publish {
+.cms-body {
+  display: grid;
+  grid-template-columns: 260px 1fr 40%;
+  height: calc(100vh - 70px);
+}
+
+/* SIDEBAR */
+#fieldList {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 10px;
+}
+
+#fieldList button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 6px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+/* EDITOR PANEL */
+#editorPanel {
+  padding: 20px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+#editorPanel textarea {
+  width: 100%;
+  height: 200px;
+  padding: 12px;
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+#editorPanel input {
+  width: 100%;
+  padding: 10px;
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* MEDIA MANAGER */
+.media-manager {
+  padding: 14px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.media-manager button {
+  margin-top: 10px;
+  padding: 8px 14px;
   background: var(--accent);
-  color: var(--accent-text);
+  color: #000;
   border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-/* -------------------------------------------------------
-   Layout Wrapper
-------------------------------------------------------- */
-
-.layout {
-  display: flex;
-  height: calc(100vh - var(--topbar-height));
-  margin-top: var(--topbar-height);
+/* PREVIEW */
+#previewSection {
+  background: var(--panel);
   overflow: hidden;
 }
 
-/* -------------------------------------------------------
-   Sidebar
-------------------------------------------------------- */
-
-.sidebar {
-  width: var(--sidebar-width);
-  background: var(--panel);
-  border-right: 1px solid var(--border);
-  padding: 10px;
-  overflow-y: auto;
-}
-
-.sidebar button {
+#previewFrame {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 6px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--text);
-  text-align: left;
-  font-size: 15px;
-  transition: var(--transition);
-}
-
-.sidebar button:hover {
-  background: var(--accent);
-  color: var(--accent-text);
-}
-
-/* -------------------------------------------------------
-   Editor Panel
-------------------------------------------------------- */
-
-#editorPanel {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-#editorPanel h2 {
-  margin-top: 0;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-#editorPanel label {
-  display: block;
-  margin-top: 14px;
-  margin-bottom: 4px;
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-#editorPanel input,
-#editorPanel textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--text);
-  font-size: 15px;
-}
-
-#saveSection {
-  margin-top: 20px;
-  padding: 12px 18px;
-  border-radius: var(--radius);
+  height: 100%;
   border: none;
-  background: var(--accent);
-  color: var(--accent-text);
-  font-size: 16px;
-  width: 100%;
 }
 
-/* -------------------------------------------------------
-   Mobile Optimization
-------------------------------------------------------- */
+/* THEMES */
 
-@media (max-width: 900px) {
-  :root {
-    --sidebar-width: 180px;
-  }
-
-  .sidebar button {
-    font-size: 14px;
-    padding: 10px;
-  }
+/* ORIGINAL */
+:root[data-theme="original"] {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --panel-light: #334155;
+  --text: #f8fafc;
+  --text-muted: #cbd5e1;
+  --accent: #d4af37;
+  --border: #334155;
+  --input-bg: #0f172a;
 }
 
-@media (max-width: 700px) {
-  .layout {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-  }
-
-  .sidebar button {
-    margin-bottom: 0;
-  }
-
-  #editorPanel {
-    height: calc(100vh - var(--topbar-height) - 200px);
-  }
+/* MULTICAM */
+:root[data-theme="multicam"] {
+  --bg: #2e2a25;
+  --panel: #3a352f;
+  --panel-light: #4a453e;
+  --text: #f5f5f5;
+  --text-muted: #d1c7b8;
+  --accent: #c2a86b;
+  --border: #4a453e;
+  --input-bg: #3a352f;
 }
 
-@media (max-width: 480px) {
-  .theme-controls {
-    display: none;
-  }
-
-  .topbar h1 {
-    font-size: 16px;
-  }
-
-  .sidebar {
-    grid-template-columns: repeat(1, 1fr);
-  }
-
-  #editorPanel {
-    padding: 14px;
-  }
+/* PATRIOTIC */
+:root[data-theme="patriotic"] {
+  --bg: #0a1a33;
+  --panel: #11284d;
+  --panel-light: #1a3a6b;
+  --text: #ffffff;
+  --text-muted: #cbd5e1;
+  --accent: #d72638;
+  --border: #1a3a6b;
+  --input-bg: #11284d;
 }
