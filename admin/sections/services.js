@@ -1,4 +1,3 @@
-// /admin/sections/services.js
 import { el, bindInput, ensure, setDirty } from "../state.js";
 
 export function render(container, data) {
