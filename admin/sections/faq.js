@@ -1,8 +1,7 @@
-// /admin/sections/faq.js
 import { el, bindInput, ensure, setDirty } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   let faqs = ensure(home, "faqs", []);
 
   if (!Array.isArray(faqs)) faqs = [];
@@ -10,11 +9,6 @@ export function build(CURRENT) {
   const wrap = el("div");
 
   const addBtn = el("button", { class: "btn primary" }, "Add FAQ");
-  addBtn.addEventListener("click", () => {
-    faqs.push({ q: "", a: "" });
-    setDirty(true);
-    rerender();
-  });
   wrap.appendChild(addBtn);
 
   const list = el("div");
@@ -36,18 +30,26 @@ export function build(CURRENT) {
       bindInput(a, item, "a");
       card.appendChild(a);
 
-      const remove = el("button", { class: "btn danger" }, "Remove");
-      remove.addEventListener("click", () => {
+      const del = el("button", { class: "btn danger" }, "Delete");
+      del.addEventListener("click", () => {
         faqs.splice(i, 1);
         setDirty(true);
         rerender();
       });
-      card.appendChild(remove);
+      card.appendChild(del);
 
       list.appendChild(card);
     });
   }
 
+  addBtn.addEventListener("click", () => {
+    faqs.push({ q: "", a: "" });
+    setDirty(true);
+    rerender();
+  });
+
   rerender();
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
