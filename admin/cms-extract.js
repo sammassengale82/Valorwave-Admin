@@ -1,6 +1,6 @@
 // cms-extract.js — Extracts live website content → draft.json
 
-async function extractCMS() {
+export async function extractCMS() {
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
   iframe.src = "/";
@@ -64,7 +64,7 @@ async function extractCMS() {
     setPath(data, path, items);
   });
 
-  await fetch("/drafts", {
+  await fetch("/draft.json", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data, null, 2)
@@ -72,5 +72,3 @@ async function extractCMS() {
 
   alert("Website content extracted into draft.json");
 }
-
-window.extractCMS = extractCMS;
