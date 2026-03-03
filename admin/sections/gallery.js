@@ -1,8 +1,7 @@
-// /cms/sections/gallery.js
 import { el, bindInput, ensure, setDirty } from "../state.js";
 
-export function build(CURRENT) {
-  const gal = ensure(CURRENT, "home.gallery", {
+export function render(container, data) {
+  const gal = ensure(data, "home.gallery", {
     title: "",
     images: []
   });
@@ -11,62 +10,53 @@ export function build(CURRENT) {
 
   const wrap = el("div");
 
-  // -----------------------------
-  // Gallery Title
-  // -----------------------------
   wrap.appendChild(el("label", {}, "Gallery Title"));
   const title = el("input", { type: "text" });
   bindInput(title, gal, "title");
   wrap.appendChild(title);
 
-  // -----------------------------
-  // Add Image Button
-  // -----------------------------
   const addBtn = el("button", { class: "btn primary" }, "Add Image");
-  addBtn.addEventListener("click", () => {
-    gal.images.push({ url: "", caption: "" });
-    setDirty(true);
-    rerender();
-  });
   wrap.appendChild(addBtn);
 
-  // -----------------------------
-  // Images List
-  // -----------------------------
   const list = el("div");
   wrap.appendChild(list);
 
   function rerender() {
     list.innerHTML = "";
 
-    gal.images.forEach((img, i) => {
+    gal.images.forEach((imgObj, i) => {
       const card = el("div", { class: "card" });
 
-      // Image URL
-      card.appendChild(el("label", {}, "Image URL (/images/...)"));
+      card.appendChild(el("label", {}, "Image URL"));
       const url = el("input", { type: "text" });
-      bindInput(url, img, "url");
+      bindInput(url, imgObj, "url");
       card.appendChild(url);
 
-      // Caption
-      card.appendChild(el("label", {}, "Caption (optional)"));
+      card.appendChild(el("label", {}, "Caption"));
       const cap = el("input", { type: "text" });
-      bindInput(cap, img, "caption");
+      bindInput(cap, imgObj, "caption");
       card.appendChild(cap);
 
-      // Remove Button
-      const remove = el("button", { class: "btn danger" }, "Remove");
-      remove.addEventListener("click", () => {
+      const del = el("button", { class: "btn danger" }, "Delete");
+      del.addEventListener("click", () => {
         gal.images.splice(i, 1);
         setDirty(true);
         rerender();
       });
-      card.appendChild(remove);
+      card.appendChild(del);
 
       list.appendChild(card);
     });
   }
 
+  addBtn.addEventListener("click", () => {
+    gal.images.push({ url: "", caption: "" });
+    setDirty(true);
+    rerender();
+  });
+
   rerender();
-  return wrap;
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
