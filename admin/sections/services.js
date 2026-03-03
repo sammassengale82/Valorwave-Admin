@@ -1,8 +1,8 @@
 // /admin/sections/services.js
 import { el, bindInput, ensure, setDirty } from "../state.js";
 
-export function build(CURRENT) {
-  const home = ensure(CURRENT, "home", {});
+export function render(container, data) {
+  const home = ensure(data, "home", {});
   const services = ensure(home, "services", {
     title: "",
     items: []
@@ -10,25 +10,18 @@ export function build(CURRENT) {
 
   const wrap = el("div");
 
-  // Section Title
   wrap.appendChild(el("label", {}, "Section Title"));
   const title = el("input", { type: "text" });
   bindInput(title, services, "title");
   wrap.appendChild(title);
 
-  // Add Service Card
   const addBtn = el("button", { class: "btn primary" }, "Add Service Card");
-  addBtn.addEventListener("click", () => {
-    services.items.push({ image: "", heading: "", text: "" });
-    setDirty(true);
-    render();
-  });
   wrap.appendChild(addBtn);
 
   const list = el("div");
   wrap.appendChild(list);
 
-  function render() {
+  function rerender() {
     list.innerHTML = "";
 
     services.items.forEach((item, i) => {
@@ -49,18 +42,26 @@ export function build(CURRENT) {
       bindInput(text, item, "text");
       card.appendChild(text);
 
-      const remove = el("button", { class: "btn danger" }, "Remove");
-      remove.addEventListener("click", () => {
+      const del = el("button", { class: "btn danger" }, "Delete");
+      del.addEventListener("click", () => {
         services.items.splice(i, 1);
         setDirty(true);
-        render();
+        rerender();
       });
-      card.appendChild(remove);
+      card.appendChild(del);
 
       list.appendChild(card);
     });
   }
 
-  render();
-  return wrap;
+  addBtn.addEventListener("click", () => {
+    services.items.push({ image: "", heading: "", text: "" });
+    setDirty(true);
+    rerender();
+  });
+
+  rerender();
+  container.appendChild(wrap);
 }
+
+export function save(data) {}
