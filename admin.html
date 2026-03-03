@@ -4,11 +4,32 @@
   <meta charset="UTF-8" />
   <title>Valorwave CMS Admin</title>
   <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="themes.css" />
 </head>
 
-<body>
+<body class="theme-original">
   <header class="topbar">
     <h1>Valorwave CMS</h1>
+
+    <div class="theme-controls">
+      <label>CMS Theme</label>
+      <select id="cmsThemeSelect">
+        <option value="original">Original</option>
+        <option value="multicam">Multicam</option>
+        <option value="patriotic">Patriotic</option>
+        <option value="dark">Dark</option>
+      </select>
+      <button id="saveCmsTheme">Save CMS Theme</button>
+
+      <label>Site Theme</label>
+      <select id="siteThemeSelect">
+        <option value="original">Original</option>
+        <option value="multicam">Multicam</option>
+        <option value="patriotic">Patriotic</option>
+      </select>
+      <button id="saveSiteTheme">Save Site Theme</button>
+    </div>
+
     <div class="status">
       <span id="saveStatus">Loaded</span>
       <button id="saveBtn">Save Draft</button>
@@ -42,6 +63,7 @@
     <main id="sectionContent" class="content"></main>
   </div>
 
+  <script type="module" src="theme.js"></script>
   <script type="module" src="admin.js"></script>
 </body>
 </html>
