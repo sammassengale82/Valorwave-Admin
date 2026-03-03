@@ -1,70 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="original">
 <head>
-  <meta charset="UTF-8" />
-  <title>Valorwave CMS Admin</title>
-  <link rel="stylesheet" href="admin.css" />
-  <link rel="stylesheet" href="themes.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valor Wave CMS</title>
+  <link rel="stylesheet" href="admin.css">
 </head>
 
-<body class="theme-original">
-  <header class="topbar">
-    <h1>Valorwave CMS</h1>
-
-    <div class="theme-controls">
-      <label>CMS Theme</label>
-      <select id="cmsThemeSelect">
-        <option value="original">Original</option>
-        <option value="multicam">Multicam</option>
-        <option value="patriotic">Patriotic</option>
-        <option value="dark">Dark</option>
-      </select>
-      <button id="saveCmsTheme">Save CMS Theme</button>
-
-      <label>Site Theme</label>
-      <select id="siteThemeSelect">
-        <option value="original">Original</option>
-        <option value="multicam">Multicam</option>
-        <option value="patriotic">Patriotic</option>
-      </select>
-      <button id="saveSiteTheme">Save Site Theme</button>
+<body>
+  <header class="cms-header">
+    <div class="left">
+      <h1>Valor Wave CMS</h1>
     </div>
 
-    <div class="status">
-      <span id="saveStatus">Loaded</span>
+    <div class="right">
+      <select id="themeSelect">
+        <option value="original">Original</option>
+        <option value="multicam">Multicam</option>
+        <option value="patriotic">Patriotic</option>
+      </select>
+
       <button id="saveDraft">Save Draft</button>
-      <button id="publish" class="primary">Publish</button>
-<button id="extractWebsite">Load Website Data</button>
+      <button id="publish">Publish</button>
     </div>
   </header>
 
-  <div class="layout">
-    <nav class="sidebar">
-      <button data-section="header">Header</button>
-      <button data-section="hero">Hero</button>
-      <button data-section="hero_discount">Hero Discount</button>
-      <button data-section="quote_banner">Quote Banner</button>
-      <button data-section="services">Services</button>
-      <button data-section="gallery">Gallery</button>
-      <button data-section="faq">FAQ</button>
-      <button data-section="clients_say">Clients Say</button>
-      <button data-section="chattanooga">Chattanooga</button>
-      <button data-section="bio">Bio</button>
-      <button data-section="brand">Brand</button>
-      <button data-section="calendar">Calendar</button>
-      <button data-section="service_area">Service Area</button>
-      <button data-section="quote_form">Quote Form</button>
-      <button data-section="submit_testimonial">Submit Testimonial</button>
-      <button data-section="footer">Footer</button>
-      <button data-section="seo">SEO</button>
-      <button data-section="analytics">Analytics</button>
-      <button data-section="legal">Legal</button>
-    </nav>
+  <div class="cms-body">
+    <!-- FIELD LIST -->
+    <aside id="fieldList"></aside>
 
-    <main id="editorPanel" class="content"></main>
+    <!-- EDITOR PANEL -->
+    <main id="editorPanel">
+      <h2 id="fieldTitle">Select a field</h2>
+
+      <textarea id="editor" placeholder="Edit content here..."></textarea>
+
+      <input id="linkEditor" placeholder="Link (optional)" />
+
+      <div class="media-manager">
+        <h3>Upload Image</h3>
+        <input type="file" id="imageUpload" accept="image/*">
+        <button id="uploadBtn">Upload</button>
+        <div id="uploadStatus"></div>
+      </div>
+    </main>
+
+    <!-- LIVE PREVIEW -->
+    <section id="previewSection">
+      <iframe id="previewFrame" src="https://valorwaveentertainment.com/"></iframe>
+    </section>
   </div>
 
-  <script type="module" src="theme.js"></script>
-  <script type="module" src="admin.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
