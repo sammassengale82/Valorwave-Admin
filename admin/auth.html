@@ -4,15 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Authenticating…</title>
+
   <style>
+    :root[data-theme="original"] {
+      --bg: #0f172a;
+      --text: #f8fafc;
+    }
+
+    :root[data-theme="multicam"] {
+      --bg: #2e2a25;
+      --text: #f5f5f5;
+    }
+
+    :root[data-theme="patriotic"] {
+      --bg: #0a1a33;
+      --text: #ffffff;
+    }
+
     body {
-      background: #0f172a;
-      color: #fff;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 24px;
+      opacity: 0.9;
     }
   </style>
 </head>
@@ -21,6 +44,11 @@
   <h2>Authenticating with GitHub…</h2>
 
   <script>
+    /* Apply CMS theme (local only) */
+    const savedTheme = localStorage.getItem("cms-theme") || "original";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    /* After OAuth callback, redirect into admin */
     setTimeout(() => {
       window.location.href = "/admin/admin.html";
     }, 800);
