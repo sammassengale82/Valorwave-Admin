@@ -1,7 +1,16 @@
-// PROTECT ADMIN
-if (localStorage.getItem("cms-auth") !== "true") {
-  window.location.href = "/admin/login.html";
+/* SESSION CHECK */
+async function checkSession() {
+  const res = await fetch("https://valorwave-admin-worker.sammassengale82.workers.dev/draft.json", {
+    method: "GET",
+    credentials: "include"
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    window.location.href = "/admin/login.html";
+  }
 }
+
+checkSession();
 
 /* THEME SYSTEM */
 const savedTheme = localStorage.getItem("cms-theme") || "original";
@@ -20,7 +29,7 @@ let currentField = null;
 
 /* LOAD DRAFT.JSON */
 async function loadDraft() {
-  const res = await fetch("/draft.json", { cache: "no-store" });
+  const res = await fetch("/draft.json", { credentials: "include" });
   cmsData = await res.json();
   buildFieldList();
 }
@@ -40,7 +49,7 @@ function buildFieldList() {
   });
 }
 
-/* LOAD FIELD INTO EDITOR */
+/* LOAD FIELD */
 function loadField(key) {
   currentField = key;
   document.getElementById("fieldTitle").innerText = key;
@@ -92,6 +101,7 @@ function updatePreview(key, value) {
 document.getElementById("saveDraft").onclick = async () => {
   await fetch("/draft.json", {
     method: "PUT",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(cmsData, null, 2)
   });
@@ -100,7 +110,7 @@ document.getElementById("saveDraft").onclick = async () => {
 
 /* PUBLISH */
 document.getElementById("publish").onclick = async () => {
-  await fetch("/publish", { method: "POST" });
+  await fetch("/publish", { method: "POST", credentials: "include" });
   alert("Published!");
 };
 
@@ -112,7 +122,7 @@ document.getElementById("uploadBtn").onclick = async () => {
   const form = new FormData();
   form.append("file", file);
 
-  const res = await fetch("/upload", { method: "POST", body: form });
+  const res = await fetch("/upload", { method: "POST", credentials: "include", body: form });
   const json = await res.json();
 
   document.getElementById("uploadStatus").innerText = "Uploaded: " + json.url;
@@ -125,8 +135,11 @@ document.getElementById("uploadBtn").onclick = async () => {
 };
 
 /* LOGOUT */
-document.getElementById("logoutBtn").onclick = () => {
-  localStorage.removeItem("cms-auth");
-  localStorage.removeItem("cms-2fa");
+document.getElementById("logoutBtn").onclick = async () => {
+  await fetch("https://valorwave-admin-worker.sammassengale82.workers.dev/auth/logout", {
+    method: "GET",
+    credentials: "include"
+  });
+
   window.location.href = "/admin/login.html";
 };
