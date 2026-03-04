@@ -3,30 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Valor Wave CMS Login</title>
-  <link rel="stylesheet" href="login.css">
+  <title>Valor Wave CMS</title>
+  <link rel="stylesheet" href="admin.css">
 </head>
 
 <body>
-  <div class="login-container">
-    <div class="login-box">
-      <img src="https://valorwaveentertainment.com/logo.png" class="login-logo" alt="Valor Wave Logo">
-
+  <header class="cms-header">
+    <div class="left">
       <h1>Valor Wave CMS</h1>
-      <p class="login-sub">Administrator Login</p>
+    </div>
 
-      <select id="themeSelect" class="theme-select">
+    <div class="right">
+      <select id="themeSelect">
         <option value="original">Original</option>
         <option value="multicam">Multicam</option>
         <option value="patriotic">Patriotic</option>
       </select>
 
-      <button id="githubLoginBtn" class="github-btn">
-        Login with GitHub
-      </button>
+      <button id="saveDraft">Save Draft</button>
+      <button id="publish">Publish</button>
+      <button id="logoutBtn">Logout</button>
     </div>
+  </header>
+
+  <div class="cms-body">
+    <aside id="fieldList"></aside>
+
+    <main id="editorPanel">
+      <h2>Select a group</h2>
+    </main>
+
+    <section id="previewSection">
+      <iframe id="previewFrame" src="https://valorwaveentertainment.com/"></iframe>
+    </section>
   </div>
 
-  <script src="login.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
