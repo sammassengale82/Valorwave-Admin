@@ -26,7 +26,7 @@ export default {
     // --- OAUTH LOGIN ---
     if (path === "/oauth/login") {
       const state = crypto.randomUUID();
-      const redirect = `https://github.com/login/oauth/authorize?client_id=${env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.CALLBACK_URL)}&scope=read:user&state=${state}`;
+      const redirect = `https://github.com/login/oauth/authorize?client_id=${env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.CALLBACK_URL)}&scope=repo&state=${state}`;
 
       return Response.redirect(redirect, 302);
     }
@@ -92,31 +92,37 @@ export default {
       });
     }
 
-    // --- EXISTING CMS ROUTES ---
+    // --- CORS ---
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors() });
     }
 
+    // --- GET draft.json ---
     if (path.includes("draft.json") && request.method === "GET") {
       return getFile(env, "draft.json");
     }
 
+    // --- PUT draft.json (SYNC TO BOTH REPOS) ---
     if (path.includes("draft.json") && request.method === "PUT") {
       return putFile(request, env, "draft.json");
     }
 
+    // --- GET publish.json ---
     if (path.includes("publish.json") && request.method === "GET") {
       return getFile(env, "publish.json");
     }
 
+    // --- PUT publish.json (SYNC TO BOTH REPOS) ---
     if (path.includes("publish.json") && request.method === "PUT") {
       return putFile(request, env, "publish.json");
     }
 
+    // --- PUBLISH (COPY draft → publish IN BOTH REPOS) ---
     if (path.includes("publish") && request.method === "POST") {
       return publish(env);
     }
 
+    // --- IMAGE UPLOAD ---
     if (path.includes("upload") && request.method === "POST") {
       return upload(request, env);
     }
@@ -125,7 +131,10 @@ export default {
   }
 };
 
-// --- SESSION HELPERS ---
+// ============================================================
+// SESSION HELPERS
+// ============================================================
+
 async function createSession(env, username) {
   const data = JSON.stringify({ username, ts: Date.now() });
   const key = await crypto.subtle.importKey(
@@ -155,5 +164,133 @@ function getSession(request, env) {
   return JSON.parse(data);
 }
 
-// --- EXISTING FUNCTIONS (unchanged) ---
-/* getFile, putFile, publish, upload, cors() remain unchanged */
+// ============================================================
+// GITHUB FILE HELPERS (NEW)
+// ============================================================
+
+async function readFromRepo(env, repo, filename) {
+  const url = `https://api.github.com/repos/${env.GITHUB_OWNER}/${repo}/contents/${filename}`;
+
+  const res = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "Accept": "application/vnd.github+json"
+    }
+  });
+
+  if (!res.ok) throw new Error("Failed to read " + filename);
+
+  const json = await res.json();
+  return atob(json.content);
+}
+
+async function writeToRepo(env, repo, filename, content) {
+  const url = `https://api.github.com/repos/${env.GITHUB_OWNER}/${repo}/contents/${filename}`;
+
+  // Check if file exists to get SHA
+  const existing = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "Accept": "application/vnd.github+json"
+    }
+  });
+
+  let sha = null;
+  if (existing.ok) {
+    const json = await existing.json();
+    sha = json.sha;
+  }
+
+  const payload = {
+    message: `Update ${filename}`,
+    content: btoa(content),
+    sha
+  };
+
+  const putRes = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "Accept": "application/vnd.github+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!putRes.ok) {
+    const err = await putRes.text();
+    throw new Error("GitHub write failed: " + err);
+  }
+}
+
+// ============================================================
+// CMS FILE ROUTES (UPDATED FOR DUAL-REPO SYNC)
+// ============================================================
+
+async function getFile(env, filename) {
+  const content = await readFromRepo(env, env.GITHUB_ADMIN_REPO, filename);
+  return new Response(content, { status: 200, headers: cors() });
+}
+
+async function putFile(request, env, filename) {
+  const body = await request.text();
+
+  // Write to both repos
+  await writeToRepo(env, env.GITHUB_ADMIN_REPO, filename, body);
+  await writeToRepo(env, env.GITHUB_WEBSITE_REPO, filename, body);
+
+  return new Response("OK", { status: 200, headers: cors() });
+}
+
+async function publish(env) {
+  // Load draft.json from admin repo
+  const draft = await readFromRepo(env, env.GITHUB_ADMIN_REPO, "draft.json");
+
+  // Write publish.json to both repos
+  await writeToRepo(env, env.GITHUB_ADMIN_REPO, "publish.json", draft);
+  await writeToRepo(env, env.GITHUB_WEBSITE_REPO, "publish.json", draft);
+
+  return new Response("Published", { status: 200, headers: cors() });
+}
+
+// ============================================================
+// IMAGE UPLOAD (UNCHANGED)
+// ============================================================
+
+async function upload(request, env) {
+  const form = await request.formData();
+  const file = form.get("file");
+
+  if (!file) {
+    return new Response("No file", { status: 400 });
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+
+  const uploadRes = await fetch(env.IMAGE_UPLOAD_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${env.IMAGE_UPLOAD_TOKEN}`
+    },
+    body: arrayBuffer
+  });
+
+  const json = await uploadRes.json();
+
+  return new Response(JSON.stringify(json), {
+    status: 200,
+    headers: { "Content-Type": "application/json", ...cors() }
+  });
+}
+
+// ============================================================
+// CORS
+// ============================================================
+
+function cors() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+  };
+}
