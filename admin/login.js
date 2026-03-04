@@ -1,15 +1,34 @@
-/* THEME SYSTEM */
+/* ============================================================
+   CMS THEME (LOCAL ONLY)
+   ------------------------------------------------------------
+   This theme affects ONLY the admin UI. It does NOT affect the
+   website theme. Stored in localStorage and applied instantly.
+   ============================================================ */
+
 const savedTheme = localStorage.getItem("cms-theme") || "original";
 document.documentElement.setAttribute("data-theme", savedTheme);
-document.getElementById("themeSelect").value = savedTheme;
 
-document.getElementById("themeSelect").onchange = e => {
-  const t = e.target.value;
-  localStorage.setItem("cms-theme", t);
-  document.documentElement.setAttribute("data-theme", t);
-};
+const themeSelect = document.getElementById("themeSelect");
+if (themeSelect) {
+  themeSelect.value = savedTheme;
 
-/* LOGIN WITH GITHUB */
-document.getElementById("githubLoginBtn").onclick = () => {
-  window.location.href = "https://valorwave-admin-worker.sammassengale82.workers.dev/oauth/login";
-};
+  themeSelect.onchange = (e) => {
+    const newTheme = e.target.value;
+    localStorage.setItem("cms-theme", newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+  };
+}
+
+/* ============================================================
+   GITHUB OAUTH LOGIN
+   ------------------------------------------------------------
+   Redirects the user to your Cloudflare Worker OAuth endpoint.
+   ============================================================ */
+
+const loginBtn = document.getElementById("githubLoginBtn");
+if (loginBtn) {
+  loginBtn.onclick = () => {
+    window.location.href =
+      "https://valorwave-admin-worker.sammassengale82.workers.dev/oauth/login";
+  };
+}
