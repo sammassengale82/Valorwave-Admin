@@ -19,11 +19,6 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.cms-header h1 {
-  margin: 0;
-  font-size: 22px;
-}
-
 .cms-header button,
 .cms-header select {
   margin-left: 10px;
@@ -49,16 +44,32 @@ body {
   padding: 10px;
 }
 
-#fieldList button {
+.group-header {
+  width: 100%;
+  padding: 12px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.group-fields {
+  display: none;
+  margin-bottom: 10px;
+}
+
+.group-fields button {
   width: 100%;
   padding: 10px;
-  margin-bottom: 6px;
   background: var(--panel-light);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
   cursor: pointer;
   text-align: left;
+  margin-bottom: 4px;
 }
 
 /* EDITOR PANEL */
@@ -69,40 +80,49 @@ body {
   overflow-y: auto;
 }
 
-#editorPanel textarea {
+.field-block {
+  background: var(--panel-light);
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+
+.field-label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.field-textarea {
   width: 100%;
-  height: 200px;
-  padding: 12px;
+  height: 120px;
+  padding: 10px;
   background: var(--input-bg);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   margin-bottom: 10px;
 }
 
-#editorPanel input {
+.field-link {
   width: 100%;
   padding: 10px;
   background: var(--input-bg);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  margin-bottom: 20px;
+  border-radius: 6px;
+  margin-bottom: 10px;
 }
 
-/* MEDIA MANAGER */
-.media-manager {
-  padding: 14px;
-  background: var(--panel-light);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.media-manager button {
+.image-upload-block {
   margin-top: 10px;
+}
+
+.upload-image-btn {
+  margin-top: 6px;
   padding: 8px 14px;
   background: var(--accent);
-  color: #000;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -121,38 +141,31 @@ body {
 }
 
 /* THEMES */
-
-/* ORIGINAL */
 :root[data-theme="original"] {
   --bg: #0f172a;
   --panel: #1e293b;
   --panel-light: #334155;
   --text: #f8fafc;
-  --text-muted: #cbd5e1;
   --accent: #d4af37;
   --border: #334155;
   --input-bg: #0f172a;
 }
 
-/* MULTICAM */
 :root[data-theme="multicam"] {
   --bg: #2e2a25;
   --panel: #3a352f;
   --panel-light: #4a453e;
   --text: #f5f5f5;
-  --text-muted: #d1c7b8;
   --accent: #c2a86b;
   --border: #4a453e;
   --input-bg: #3a352f;
 }
 
-/* PATRIOTIC */
 :root[data-theme="patriotic"] {
   --bg: #0a1a33;
   --panel: #11284d;
   --panel-light: #1a3a6b;
   --text: #ffffff;
-  --text-muted: #cbd5e1;
   --accent: #d72638;
   --border: #1a3a6b;
   --input-bg: #11284d;
