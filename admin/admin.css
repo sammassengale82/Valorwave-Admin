@@ -69,11 +69,6 @@ body {
   overflow-y: auto;
 }
 
-#editorPanel h2 {
-  margin-top: 0;
-  margin-bottom: 12px;
-}
-
 #editorPanel textarea {
   width: 100%;
   height: 200px;
