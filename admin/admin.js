@@ -23,60 +23,130 @@ document.getElementById("themeSelect").onchange = e => {
   document.documentElement.setAttribute("data-theme", t);
 };
 
-/* GLOBAL STATE */
+/* GROUP DEFINITIONS */
+const groups = {
+  Hero: ["hero_title", "hero_subtitle", "hero_button", "hero_image"],
+  About: ["about_title", "about_text", "about_image"],
+  Services: [
+    "service1_title", "service1_text", "service1_image",
+    "service2_title", "service2_text", "service2_image",
+    "service3_title", "service3_text", "service3_image"
+  ],
+  Testimonials: ["test1_name", "test1_quote", "test2_name", "test2_quote"],
+  Footer: ["footer_text", "footer_logo"],
+  SEO: ["meta_title", "meta_description"]
+};
+
 let cmsData = {};
-let currentField = null;
 
 /* LOAD DRAFT.JSON */
 async function loadDraft() {
   const res = await fetch("/draft.json", { credentials: "include" });
   cmsData = await res.json();
-  buildFieldList();
+  buildSidebar();
 }
 
 loadDraft();
 
-/* BUILD FIELD LIST */
-function buildFieldList() {
+/* SIDEBAR ACCORDION */
+function buildSidebar() {
   const list = document.getElementById("fieldList");
   list.innerHTML = "";
 
-  Object.keys(cmsData).forEach(key => {
-    const btn = document.createElement("button");
-    btn.innerText = key;
-    btn.onclick = () => loadField(key);
-    list.appendChild(btn);
+  Object.keys(groups).forEach(groupName => {
+    const header = document.createElement("div");
+    header.className = "group-header";
+    header.innerText = groupName;
+
+    const fields = document.createElement("div");
+    fields.className = "group-fields";
+
+    groups[groupName].forEach(key => {
+      const btn = document.createElement("button");
+      btn.innerText = key;
+      btn.onclick = () => loadGroup(groupName);
+      fields.appendChild(btn);
+    });
+
+    header.onclick = () => {
+      fields.style.display = fields.style.display === "block" ? "none" : "block";
+      loadGroup(groupName);
+    };
+
+    list.appendChild(header);
+    list.appendChild(fields);
   });
 }
 
-/* LOAD FIELD */
-function loadField(key) {
-  currentField = key;
-  document.getElementById("fieldTitle").innerText = key;
+/* LOAD FULL GROUP INTO CENTER PANEL */
+function loadGroup(groupName) {
+  const panel = document.getElementById("editorPanel");
+  panel.innerHTML = `<h2>${groupName}</h2>`;
 
-  const value = cmsData[key] || "";
+  groups[groupName].forEach(key => {
+    const value = cmsData[key] || "";
+    const hrefValue = cmsData[key + "__href"] || "";
 
-  if (key.endsWith("__href")) {
-    document.getElementById("linkEditor").value = value;
-    document.getElementById("editor").value = "";
-  } else {
-    document.getElementById("editor").value = value;
-    document.getElementById("linkEditor").value = cmsData[key + "__href"] || "";
-  }
+    const wrapper = document.createElement("div");
+    wrapper.className = "field-block";
+
+    wrapper.innerHTML = `
+      <label class="field-label">${key}</label>
+      <textarea class="field-textarea" data-key="${key}">${value}</textarea>
+      <input class="field-link" data-key="${key}__href" placeholder="Link (optional)" value="${hrefValue}">
+    `;
+
+    if (key.includes("image")) {
+      wrapper.innerHTML += `
+        <div class="image-upload-block">
+          <input type="file" class="image-input" data-img="${key}" accept="image/*">
+          <button class="upload-image-btn" data-img="${key}">Upload Image</button>
+        </div>
+      `;
+    }
+
+    panel.appendChild(wrapper);
+  });
+
+  attachListeners();
 }
 
-/* LIVE EDITING */
-document.getElementById("editor").oninput = e => {
-  if (!currentField) return;
-  cmsData[currentField] = e.target.value;
-  updatePreview(currentField, e.target.value);
-};
+/* FIELD LISTENERS */
+function attachListeners() {
+  document.querySelectorAll(".field-textarea").forEach(el => {
+    el.oninput = e => {
+      const key = e.target.dataset.key;
+      cmsData[key] = e.target.value;
+      updatePreview(key, e.target.value);
+    };
+  });
 
-document.getElementById("linkEditor").oninput = e => {
-  if (!currentField) return;
-  cmsData[currentField + "__href"] = e.target.value;
-  updatePreview(currentField, cmsData[currentField]);
-};
+  document.querySelectorAll(".field-link").forEach(el => {
+    el.oninput = e => {
+      const key = e.target.dataset.key;
+      cmsData[key] = e.target.value;
+    };
+  });
+
+  document.querySelectorAll(".upload-image-btn").forEach(btn => {
+    btn.onclick = async e => {
+      const key = e.target.dataset.img;
+      const file = document.querySelector(`input[data-img="${key}"]`).files[0];
+      if (!file) return;
+
+      const form = new FormData();
+      form.append("file", file);
+
+      const res = await fetch("/upload", { method: "POST", credentials: "include", body: form });
+      const json = await res.json();
+
+      cmsData[key] = json.url;
+      updatePreview(key, json.url);
+
+      alert("Image uploaded: " + json.url);
+    };
+  });
+}
 
 /* LIVE PREVIEW */
 function updatePreview(key, value) {
@@ -112,26 +182,6 @@ document.getElementById("saveDraft").onclick = async () => {
 document.getElementById("publish").onclick = async () => {
   await fetch("/publish", { method: "POST", credentials: "include" });
   alert("Published!");
-};
-
-/* IMAGE UPLOAD */
-document.getElementById("uploadBtn").onclick = async () => {
-  const file = document.getElementById("imageUpload").files[0];
-  if (!file) return;
-
-  const form = new FormData();
-  form.append("file", file);
-
-  const res = await fetch("/upload", { method: "POST", credentials: "include", body: form });
-  const json = await res.json();
-
-  document.getElementById("uploadStatus").innerText = "Uploaded: " + json.url;
-
-  if (currentField && currentField.includes("image")) {
-    cmsData[currentField] = json.url;
-    document.getElementById("editor").value = json.url;
-    updatePreview(currentField, json.url);
-  }
 };
 
 /* LOGOUT */
