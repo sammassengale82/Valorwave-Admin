@@ -12,7 +12,7 @@ async function checkSession() {
 
 checkSession();
 
-/* THEME SYSTEM */
+/* THEME SYSTEM (admin UI only) */
 const savedTheme = localStorage.getItem("cms-theme") || "original";
 document.documentElement.setAttribute("data-theme", savedTheme);
 document.getElementById("themeSelect").value = savedTheme;
@@ -23,18 +23,132 @@ document.getElementById("themeSelect").onchange = e => {
   document.documentElement.setAttribute("data-theme", t);
 };
 
-/* GROUP DEFINITIONS */
+/* GROUP DEFINITIONS — MATCH YOUR JSON KEYS */
 const groups = {
-  Hero: ["hero_title", "hero_subtitle", "hero_button", "hero_image"],
-  About: ["about_title", "about_text", "about_image"],
-  Services: [
-    "service1_title", "service1_text", "service1_image",
-    "service2_title", "service2_text", "service2_image",
-    "service3_title", "service3_text", "service3_image"
+  Hero: [
+    "hero-h1",
+    "hero-logo",
+    "hero-kicker",
+    "hero-tagline",
+    "hero-subline",
+    "hero-cta",
+    "hero-cta__href"
   ],
-  Testimonials: ["test1_name", "test1_quote", "test2_name", "test2_quote"],
-  Footer: ["footer_text", "footer_logo"],
-  SEO: ["meta_title", "meta_description"]
+  Navigation: [
+    "nav-services",
+    "nav-availability",
+    "nav-hero-discount",
+    "nav-request-quote",
+    "nav-request-quote__href",
+    "nav-client-portal",
+    "nav-client-portal__href",
+    "header-logo",
+    "header-brand-text",
+    "header-social-links"
+  ],
+  Services: [
+    "services-heading",
+    "service-card-1-image",
+    "service-card-1-title",
+    "service-card-1-text",
+    "service-card-2-image",
+    "service-card-2-title",
+    "service-card-2-text",
+    "service-card-3-image",
+    "service-card-3-title",
+    "service-card-3-text",
+    "service-card-4-image",
+    "service-card-4-title",
+    "service-card-4-text"
+  ],
+  "Service Area": [
+    "service-area-heading",
+    "service-area-text"
+  ],
+  Bio: [
+    "bio-heading",
+    "bio-image",
+    "bio-name",
+    "bio-text-1",
+    "bio-text-2",
+    "bio-text-3"
+  ],
+  "Wedding DJ": [
+    "wedding-dj-heading",
+    "wedding-dj-intro",
+    "wedding-dj-card-1-title",
+    "wedding-dj-card-1-text",
+    "wedding-dj-card-2-title",
+    "wedding-dj-card-2-text",
+    "wedding-dj-card-3-title",
+    "wedding-dj-card-3-text"
+  ],
+  FAQ: [
+    "faq-heading",
+    "faq-1",
+    "faq-2",
+    "faq-3"
+  ],
+  "Brand Meaning": [
+    "brand-meaning-heading",
+    "brand-meaning-1",
+    "brand-meaning-2",
+    "brand-meaning-3"
+  ],
+  "Hero Discount": [
+    "hero-discount-heading",
+    "hero-discount-subheading",
+    "hero-discount-text-1",
+    "hero-discount-text-2"
+  ],
+  Calendar: [
+    "calendar-heading",
+    "calendar-intro",
+    "calendar-note",
+    "calendar-button",
+    "calendar-button__href"
+  ],
+  "Testimonial Form": [
+    "testimonial-form-heading",
+    "testimonial-form-name",
+    "testimonial-form-email",
+    "testimonial-form-event-type",
+    "testimonial-form-date",
+    "testimonial-form-message",
+    "testimonial-form-permission",
+    "testimonial-form-submit",
+    "testimonial-form-footer"
+  ],
+  Testimonials: [
+    "testimonial-heading",
+    "testimonial-1-text",
+    "testimonial-1-author",
+    "testimonial-2-text",
+    "testimonial-2-author",
+    "testimonial-3-text",
+    "testimonial-3-author"
+  ],
+  Footer: [
+    "footer-logo",
+    "footer-line-1",
+    "footer-line-2",
+    "footer-line-3",
+    "footer-line-4",
+    "footer-social-links"
+  ],
+  SEO: [
+    "meta_title",
+    "meta_description",
+    "meta_keywords",
+    "og_title",
+    "og_description",
+    "og_image"
+  ],
+  Google: [
+    "google_analytics_id",
+    "google_tag_manager_id",
+    "google_site_verification"
+  ]
 };
 
 let cmsData = {};
@@ -117,6 +231,7 @@ function attachListeners() {
     el.oninput = e => {
       const key = e.target.dataset.key;
       cmsData[key] = e.target.value;
+      // Live preview editing only works if iframe is same-origin
       updatePreview(key, e.target.value);
     };
   });
@@ -148,22 +263,25 @@ function attachListeners() {
   });
 }
 
-/* LIVE PREVIEW */
+/* LIVE PREVIEW (only works if iframe is same-origin) */
 function updatePreview(key, value) {
   const iframe = document.getElementById("previewFrame");
-  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  try {
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    const el = doc.querySelector(`[data-ve-edit="${key}"]`);
+    if (!el) return;
 
-  const el = doc.querySelector(`[data-ve-edit="${key}"]`);
-  if (!el) return;
+    if (el.tagName === "IMG") {
+      el.src = value;
+    } else {
+      el.innerHTML = value;
+    }
 
-  if (el.tagName === "IMG") {
-    el.src = value;
-  } else {
-    el.innerHTML = value;
-  }
-
-  if (cmsData[key + "__href"] && el.tagName === "A") {
-    el.href = cmsData[key + "__href"];
+    if (cmsData[key + "__href"] && el.tagName === "A") {
+      el.href = cmsData[key + "__href"];
+    }
+  } catch (e) {
+    // Cross-origin: cannot touch preview DOM
   }
 }
 
