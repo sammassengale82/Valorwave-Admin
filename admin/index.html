@@ -8,34 +8,53 @@
 </head>
 
 <body>
+  <!-- HEADER -->
   <header class="cms-header">
     <div class="left">
       <h1>Valor Wave CMS</h1>
     </div>
 
     <div class="right">
-      <select id="themeSelect">
+
+      <!-- CMS THEME (LOCAL ONLY) -->
+      <label class="theme-label">CMS Theme:</label>
+      <select id="themeSelect" class="theme-select">
         <option value="original">Original</option>
         <option value="multicam">Multicam</option>
         <option value="patriotic">Patriotic</option>
       </select>
 
+      <!-- WEBSITE THEME (SAVED TO JSON) -->
+      <label class="theme-label">Website Theme:</label>
+      <select id="siteThemeSelect" class="theme-select">
+        <option value="original">Original</option>
+        <option value="multicam">Multicam</option>
+        <option value="patriotic">Patriotic</option>
+      </select>
+
+      <!-- ACTION BUTTONS -->
       <button id="saveDraft">Save Draft</button>
       <button id="publish">Publish</button>
       <button id="logoutBtn">Logout</button>
     </div>
   </header>
 
+  <!-- BODY LAYOUT -->
   <div class="cms-body">
+
+    <!-- SIDEBAR -->
     <aside id="fieldList"></aside>
 
+    <!-- EDITOR PANEL -->
     <main id="editorPanel">
       <h2>Select a group</h2>
     </main>
 
+    <!-- LIVE PREVIEW -->
     <section id="previewSection">
       <iframe id="previewFrame" src="https://valorwaveentertainment.com/"></iframe>
     </section>
+
   </div>
 
   <script src="admin.js"></script>
