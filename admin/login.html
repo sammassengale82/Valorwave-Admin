@@ -4,7 +4,105 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Valor Wave CMS Login</title>
-  <link rel="stylesheet" href="login.css">
+
+  <style>
+    :root[data-theme="original"] {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-light: #334155;
+      --text: #f8fafc;
+      --accent: #d4af37;
+      --border: #334155;
+    }
+
+    :root[data-theme="multicam"] {
+      --bg: #2e2a25;
+      --panel: #3a352f;
+      --panel-light: #4a453e;
+      --text: #f5f5f5;
+      --accent: #c2a86b;
+      --border: #4a453e;
+    }
+
+    :root[data-theme="patriotic"] {
+      --bg: #0a1a33;
+      --panel: #11284d;
+      --panel-light: #1a3a6b;
+      --text: #ffffff;
+      --accent: #d72638;
+      --border: #1a3a6b;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: var(--panel);
+      padding: 30px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .login-logo {
+      width: 120px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      color: var(--text);
+    }
+
+    .login-sub {
+      margin-top: 6px;
+      margin-bottom: 20px;
+      color: var(--text);
+      opacity: 0.8;
+    }
+
+    .theme-select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel-light);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .github-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .github-btn:hover {
+      opacity: 0.9;
+    }
+  </style>
 </head>
 
 <body>
@@ -27,6 +125,22 @@
     </div>
   </div>
 
-  <script src="login.js"></script>
+  <script>
+    /* CMS THEME (LOCAL ONLY) */
+    const savedTheme = localStorage.getItem("cms-theme") || "original";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    document.getElementById("themeSelect").value = savedTheme;
+
+    document.getElementById("themeSelect").onchange = e => {
+      const t = e.target.value;
+      localStorage.setItem("cms-theme", t);
+      document.documentElement.setAttribute("data-theme", t);
+    };
+
+    /* LOGIN WITH GITHUB */
+    document.getElementById("githubLoginBtn").onclick = () => {
+      window.location.href = "https://valorwave-admin-worker.sammassengale82.workers.dev/oauth/login";
+    };
+  </script>
 </body>
 </html>
