@@ -1,3 +1,7 @@
+/* ============================================================
+   GLOBAL RESET & BASE
+   ============================================================ */
+
 * {
   box-sizing: border-box;
   font-family: Arial, sans-serif;
@@ -10,6 +14,10 @@ body {
   transition: background .2s ease, color .2s ease;
 }
 
+/* ============================================================
+   HEADER
+   ============================================================ */
+
 .cms-header {
   display: flex;
   justify-content: space-between;
@@ -19,9 +27,24 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.cms-header button,
-.cms-header select {
-  margin-left: 10px;
+.cms-header h1 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--text);
+}
+
+.cms-header .right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-label {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.theme-select {
   padding: 8px 14px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -30,13 +53,34 @@ body {
   cursor: pointer;
 }
 
+.cms-header button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-light);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.cms-header button:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ============================================================
+   MAIN LAYOUT
+   ============================================================ */
+
 .cms-body {
   display: grid;
   grid-template-columns: 260px 1fr 40%;
   height: calc(100vh - 70px);
 }
 
-/* SIDEBAR */
+/* ============================================================
+   SIDEBAR (ACCORDION)
+   ============================================================ */
+
 #fieldList {
   background: var(--panel);
   border-right: 1px solid var(--border);
@@ -53,6 +97,12 @@ body {
   margin-bottom: 6px;
   cursor: pointer;
   font-weight: bold;
+  color: var(--text);
+}
+
+.group-header:hover {
+  background: var(--accent);
+  color: #000;
 }
 
 .group-fields {
@@ -72,12 +122,25 @@ body {
   margin-bottom: 4px;
 }
 
-/* EDITOR PANEL */
+.group-fields button:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ============================================================
+   EDITOR PANEL
+   ============================================================ */
+
 #editorPanel {
   padding: 20px;
   background: var(--panel);
   border-right: 1px solid var(--border);
   overflow-y: auto;
+}
+
+#editorPanel h2 {
+  margin-top: 0;
+  color: var(--text);
 }
 
 .field-block {
@@ -92,6 +155,7 @@ body {
   display: block;
   font-weight: bold;
   margin-bottom: 6px;
+  color: var(--text);
 }
 
 .field-textarea {
@@ -126,12 +190,22 @@ body {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  color: #000;
+  font-weight: bold;
 }
 
-/* PREVIEW */
+.upload-image-btn:hover {
+  opacity: 0.9;
+}
+
+/* ============================================================
+   PREVIEW PANEL
+   ============================================================ */
+
 #previewSection {
   background: var(--panel);
   overflow: hidden;
+  border-left: 1px solid var(--border);
 }
 
 #previewFrame {
@@ -140,7 +214,10 @@ body {
   border: none;
 }
 
-/* THEMES */
+/* ============================================================
+   THEMES
+   ============================================================ */
+
 :root[data-theme="original"] {
   --bg: #0f172a;
   --panel: #1e293b;
