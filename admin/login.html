@@ -13,7 +13,7 @@
       <img src="https://valorwaveentertainment.com/logo.png" class="login-logo" alt="Valor Wave Logo">
 
       <h1>Valor Wave CMS</h1>
-      <p class="login-sub">Administrator Access</p>
+      <p class="login-sub">Administrator Login</p>
 
       <select id="themeSelect" class="theme-select">
         <option value="original">Original</option>
@@ -21,47 +21,9 @@
         <option value="patriotic">Patriotic</option>
       </select>
 
-      <input type="password" id="passwordInput" placeholder="Enter Password">
-
-      <label class="show-pass">
-        <input type="checkbox" id="togglePass"> Show Password
-      </label>
-
-      <button id="loginBtn">Login</button>
-
-      <p class="forgot-link" id="forgotLink">Forgot password?</p>
-
-      <p id="errorMsg" class="error"></p>
-    </div>
-  </div>
-
-  <!-- RESET PASSWORD MODAL -->
-  <div id="resetModal" class="modal">
-    <div class="modal-box">
-      <h2>Reset CMS Password</h2>
-      <p>Enter the master reset key:</p>
-
-      <input type="password" id="resetKeyInput" placeholder="Master Reset Key">
-      <input type="password" id="newPassInput" placeholder="New Password">
-
-      <button id="resetPassBtn">Reset Password</button>
-      <button id="closeReset">Cancel</button>
-
-      <p id="resetError" class="error"></p>
-    </div>
-  </div>
-
-  <!-- TWO FACTOR SCREEN -->
-  <div id="twoFactorScreen" class="modal">
-    <div class="modal-box">
-      <h2>Two‑Factor Authentication</h2>
-      <p>Enter the 6‑digit code:</p>
-
-      <input type="text" id="twoFactorInput" maxlength="6" placeholder="123456">
-
-      <button id="verify2FA">Verify</button>
-
-      <p id="twoFactorError" class="error"></p>
+      <button id="githubLoginBtn" class="github-btn">
+        Login with GitHub
+      </button>
     </div>
   </div>
 
