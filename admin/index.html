@@ -3,52 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Valor Wave CMS</title>
-  <link rel="stylesheet" href="admin.css">
+  <title>Valor Wave CMS Login</title>
+  <link rel="stylesheet" href="login.css">
 </head>
 
 <body>
-  <header class="cms-header">
-    <div class="left">
-      <h1>Valor Wave CMS</h1>
-    </div>
+  <div class="login-container">
+    <div class="login-box">
+      <img src="https://valorwaveentertainment.com/logo.png" class="login-logo" alt="Valor Wave Logo">
 
-    <div class="right">
-      <select id="themeSelect">
+      <h1>Valor Wave CMS</h1>
+      <p class="login-sub">Administrator Login</p>
+
+      <select id="themeSelect" class="theme-select">
         <option value="original">Original</option>
         <option value="multicam">Multicam</option>
         <option value="patriotic">Patriotic</option>
       </select>
 
-      <button id="saveDraft">Save Draft</button>
-      <button id="publish">Publish</button>
-      <button id="logoutBtn">Logout</button>
+      <button id="githubLoginBtn" class="github-btn">
+        Login with GitHub
+      </button>
     </div>
-  </header>
-
-  <div class="cms-body">
-    <aside id="fieldList"></aside>
-
-    <main id="editorPanel">
-      <h2 id="fieldTitle">Select a field</h2>
-
-      <textarea id="editor" placeholder="Edit content here..."></textarea>
-
-      <input id="linkEditor" placeholder="Link (optional)" />
-
-      <div class="media-manager">
-        <h3>Upload Image</h3>
-        <input type="file" id="imageUpload" accept="image/*">
-        <button id="uploadBtn">Upload</button>
-        <div id="uploadStatus"></div>
-      </div>
-    </main>
-
-    <section id="previewSection">
-      <iframe id="previewFrame" src="https://valorwaveentertainment.com/"></iframe>
-    </section>
   </div>
 
-  <script src="admin.js"></script>
+  <script src="login.js"></script>
 </body>
 </html>
