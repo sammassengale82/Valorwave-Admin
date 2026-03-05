@@ -2,13 +2,10 @@
    SESSION CHECK (GitHub OAuth)
    ============================================================ */
 async function checkSession() {
-  const res = await fetch(
-    "https://valorwave-admin-worker.sammassengale82.workers.dev/draft.json",
-    {
-      method: "GET",
-      credentials: "include"
-    }
-  );
+  const res = await fetch("https://admin.valorwaveentertainment.com/draft.json", {
+    method: "GET",
+    credentials: "include"
+  });
 
   if (res.status === 401 || res.status === 403) {
     window.location.href = "/admin/login.html";
@@ -179,13 +176,15 @@ const groups = {
 let cmsData = {};
 
 /* ============================================================
-   LOAD DRAFT.JSON
+   LOAD DRAFT.JSON (FROM WORKER)
    ============================================================ */
 async function loadDraft() {
-  const res = await fetch("/draft.json", { credentials: "include" });
+  const res = await fetch("https://admin.valorwaveentertainment.com/draft.json", {
+    credentials: "include"
+  });
+
   cmsData = await res.json();
 
-  // Set website theme selector
   const siteThemeSelect = document.getElementById("siteThemeSelect");
   siteThemeSelect.value = cmsData["site_theme"] || "original";
 
@@ -273,7 +272,6 @@ function attachListeners() {
     el.oninput = (e) => {
       const key = e.target.dataset.key;
       cmsData[key] = e.target.value;
-      updatePreview(key, e.target.value);
     };
   });
 
@@ -293,7 +291,7 @@ function attachListeners() {
       const form = new FormData();
       form.append("file", file);
 
-      const res = await fetch("/upload", {
+      const res = await fetch("https://admin.valorwaveentertainment.com/upload", {
         method: "POST",
         credentials: "include",
         body: form
@@ -302,42 +300,16 @@ function attachListeners() {
       const json = await res.json();
       cmsData[key] = json.url;
 
-      updatePreview(key, json.url);
       alert("Image uploaded: " + json.url);
     };
   });
 }
 
 /* ============================================================
-   LIVE PREVIEW (SAFE FOR CROSS-ORIGIN)
-   ============================================================ */
-function updatePreview(key, value) {
-  const iframe = document.getElementById("previewFrame");
-
-  try {
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-    const el = doc.querySelector(`[data-ve-edit="${key}"]`);
-    if (!el) return;
-
-    if (el.tagName === "IMG") {
-      el.src = value;
-    } else {
-      el.innerHTML = value;
-    }
-
-    if (cmsData[key + "__href"] && el.tagName === "A") {
-      el.href = cmsData[key + "__href"];
-    }
-  } catch (e) {
-    // Cross-origin: cannot modify preview DOM
-  }
-}
-
-/* ============================================================
    SAVE DRAFT
    ============================================================ */
 document.getElementById("saveDraft").onclick = async () => {
-  await fetch("/draft.json", {
+  await fetch("https://admin.valorwaveentertainment.com/draft.json", {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -351,7 +323,7 @@ document.getElementById("saveDraft").onclick = async () => {
    PUBLISH
    ============================================================ */
 document.getElementById("publish").onclick = async () => {
-  await fetch("/publish", {
+  await fetch("https://admin.valorwaveentertainment.com/publish", {
     method: "POST",
     credentials: "include"
   });
@@ -363,13 +335,10 @@ document.getElementById("publish").onclick = async () => {
    LOGOUT
    ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
-  await fetch(
-    "https://valorwave-admin-worker.sammassengale82.workers.dev/auth/logout",
-    {
-      method: "GET",
-      credentials: "include"
-    }
-  );
+  await fetch("https://admin.valorwaveentertainment.com/auth/logout", {
+    method: "GET",
+    credentials: "include"
+  });
 
   window.location.href = "/admin/login.html";
 };
