@@ -1,2 +1,2 @@
 # Valorwave-Admin
-Valor Wave Worker
+Valor Wave Admin
