@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 // Always load draft.json from the CMS repo
-const jsonFile = ".../draft.json";
+const jsonFile = "../draft.json";
 
 // Load JSON
 fetch(jsonFile)
