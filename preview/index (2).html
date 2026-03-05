@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en" data-theme-scope="all">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Faith-Based DJ Services | Valor Wave Entertainment</title>
+  <meta
+    name="description"
+    content="Veteran-owned, faith-based wedding and event DJ in Chattanooga serving Southeast Tennessee and Northwest Georgia. Clean music, professional sound, MC services, lighting, and worry-free planning. Request a quote today."
+  />
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Valor Wave Entertainment">
+  <meta property="og:title" content="Valor Wave Entertainment | Faith-Based • Veteran-Owned DJ">
+  <meta property="og:description" content="Veteran-owned, faith-based DJ service serving Southeast Tennessee & Northwest Georgia. Weddings, church events, corporate & community celebrations. Hero Discounts available.">
+  <meta property="og:url" content="https://valorwaveentertainment.com/">
+  <meta property="og:image" content="https://valorwaveentertainment.com/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Valor Wave Entertainment | Faith-Based • Veteran-Owned DJ">
+  <meta name="twitter:description" content="Weddings, church events, corporate & community celebrations across Southeast TN & Northwest GA.">
+  <meta name="twitter:image" content="https://valorwaveentertainment.com/og-image.jpg">
+
+  <style>
+    :root{
+      --navy:#0F172A;
+      --dark:#020617;
+      --gold:#D4AF37;
+      --white:#F8FAFC;
+      --gray:#CBD5E1;
+      --panel: rgba(2, 6, 23, 0.78);
+      --border:#1E293B;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
+    body{background:var(--navy);color:var(--white);line-height:1.6}
+    a{color:var(--gold);text-decoration:none}
+
+    /* HERO (isolated so nothing can bleed through) */
+    header.hero{
+      position:relative;
+      overflow:hidden;
+      isolation:isolate;
+      min-height: 640px;
+      padding: 42px 18px 72px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      border-bottom:1px solid var(--border);
+      background:none;
+    }
+    header.hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(to bottom, rgba(2,6,23,0.60), rgba(15,23,42,0.93)),
+        url("images/hero-wedding.jpg");
+      background-size:cover;
+      background-position:center;
+      z-index:0;
+      transform: translateZ(0);
+    }
+    .hero-inner{
+      position:relative;
+      z-index:1;
+      width:min(980px, 100%);
+      padding: 26px 16px;
+      border-radius: 16px;
+      background: rgba(2,6,23,0.78);
+      border: 1px solid rgba(30,41,59,0.55);
+    }
+    .hero-logo{
+      display:block;
+      margin: 0 auto 10px;
+      width: min(520px, 92%);
+      height:auto;
+      max-height: 140px;
+      object-fit: contain;
+    }
+    .kicker{margin-top:6px;font-size:28px;font-weight:800}
+    .tagline{margin-top:10px;color:var(--gold);font-size:24px;font-family:Georgia,"Times New Roman",serif;font-style:italic}
+    .subline{margin-top:10px;color:var(--gray);font-size:15px}
+    .btn{
+      display:inline-block;
+      margin-top: 18px;
+      padding: 14px 30px;
+      background: var(--gold);
+      color: var(--dark);
+      font-weight: 900;
+      border-radius: 10px;
+      border:none;
+      cursor:pointer;
+      text-align:center;
+    }
+
+    section{max-width:1100px;margin:auto;padding:70px 18px}
+    h2{text-align:center;margin-bottom:38px;font-size:34px;font-family:Georgia,"Times New Roman",serif}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+    .card img{
+      width:100%;
+      height: 220px;
+      object-fit: cover;
+      object-position: center;
+      display:block;
+      background: rgba(2,6,23,0.55);
+    }
+    .card-body{text-align:center;padding:18px 16px 22px}
+    .card-body h3{color:var(--gold);font-family:Georgia,"Times New Roman",serif;font-size:26px;margin-bottom:10px}
+    .card-body p{color:var(--gray);font-size:14.5px}
+
+    .service-area{max-width:920px;margin:0 auto;text-align:center;color:var(--gray);font-size:16px}
+
+    .bio-wrap{
+      max-width: 920px;
+      margin: 0 auto;
+      background: var(--panel);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding: 26px 20px;
+    }
+    .bio-head{text-align:center;margin-bottom:16px}
+    .bio-image{
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      object-position: 50% 30%;
+      border-radius: 16px;
+      display:block;
+      margin: 0 auto 12px;
+      border: 1px solid rgba(212,175,55,0.35);
+    }
+    .bio-name{color:var(--gold);font-family:Georgia,"Times New Roman",serif;font-size:26px;text-align:center}
+    .bio-wrap p{color:var(--gray);font-size:15.5px;margin:10px 0;line-height:1.75}
+
+    form{
+      max-width: 760px;
+      margin: 0 auto;
+      display:grid;
+      gap: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+    input, textarea{
+      width:100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #0b1220;
+      background: rgba(248,250,252,0.95);
+      font-size: 16px;
+      color: #0b1220;
+    }
+    textarea{min-height:120px;resize:vertical}
+    .form-actions{display:flex;justify-content:center;padding-top:6px}
+    footer{padding:40px 18px;text-align:center;background:var(--dark);color:var(--gray);border-top:1px solid var(--border)}
+    footer img{max-width:160px;display:block;margin:0 auto 14px}
+
+    /* MOBILE */
+    @media (max-width: 720px){
+      header.hero{min-height: 600px;padding: 30px 14px 54px}
+      .hero-inner{padding: 20px 14px}
+      .kicker{font-size:22px}
+      .tagline{font-size:20px}
+      .subline{font-size:13.5px}
+      section{padding: 52px 14px}
+      h2{font-size:28px;margin-bottom:26px}
+      .grid{grid-template-columns:1fr;gap:18px}
+      .card img{height: 200px}
+      .bio-wrap{padding: 20px 16px}
+      .bio-image{width: 130px;height: 130px}
+      .bio-name{font-size:22px}
+      .form-actions{justify-content:stretch}
+      .form-actions .btn{width:100%}
+      .btn{width:100%}
+    }
+
+    .testimonial-form{
+      max-width: 740px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 640px){
+      #calendar iframe{height:520px;}
+    }
+
+    /* Social links */
+    .social-links{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .social-links a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:42px;
+      height:42px;
+      border-radius:999px;
+      background: var(--panel);
+      border:1px solid var(--border);
+      transition: transform .2s ease, background .2s ease;
+    }
+    .social-links a:hover{
+      background: var(--gold);
+      transform: translateY(-2px);
+    }
+    .social-links svg{
+      width:20px;
+      height:20px;
+      fill: var(--white);
+    }
+
+    /* Header bar */
+    .site-header{
+      position:sticky;
+      top:0;
+      z-index:1000;
+      background: rgba(2,6,23,.86);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .header-inner{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .brand-mini{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      text-decoration:none;
+      color: var(--white);
+    }
+    .brand-mini img{
+      width:38px;
+      height:auto;
+      display:block;
+    }
+    .brand-mini .brand-text{
+      font-weight:800;
+      letter-spacing:.3px;
+    }
+    .header-nav{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .header-nav a{
+      color: var(--white);
+      text-decoration:none;
+      font-size:14px;
+      opacity:.9;
+    }
+    .header-nav a:hover{opacity:1}
+    .header-cta{
+      background: var(--gold);
+      color:#000 !important;
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:800;
+    }
+    @media (max-width: 760px){
+      .brand-mini .brand-text{display:none;}
+      .header-nav a.nav-link{display:none;}
+    }
+
+    /* Mobile quick nav (icons) */
+    .mobile-quicknav{
+      display:none;
+      gap:10px;
+      align-items:center;
+    }
+    .mobile-quicknav a{
+      width:40px;height:40px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: var(--panel);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .mobile-quicknav svg{width:18px;height:18px;fill:var(--white);}
+    @media (max-width: 760px){
+      .header-nav a.nav-link{display:none;}
+      .mobile-quicknav{display:flex;}
+    }
+
+    /* Testimonial horizontal scroll */
+    .testimonial-scroll{
+      display:flex;
+      overflow-x:auto;
+      gap:18px;
+      scroll-snap-type:x mandatory;
+      padding-bottom:10px;
+    }
+    .testimonial-scroll .card{
+      min-width:280px;
+      scroll-snap-align:start;
+    }
+  </style>
+
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PPBLPGS51B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-PPBLPGS51B');
+  </script>
+</head>
+
+<body data-theme-scope="all">
+  <div id="top"></div>
+    <!-- HEADER -->
+  <header class="site-header" data-theme-scope="all">
+    <div class="header-inner">
+      <a class="brand-mini" href="#top" aria-label="Go to top">
+        <img
+          src="images/mini-logo.png"
+          alt="Valor Wave Entertainment"
+          data-ve-edit="header-logo"
+        />
+        <span class="brand-text" data-ve-edit="header-brand-text">Valor Wave Entertainment</span>
+      </a>
+
+      <nav class="header-nav" aria-label="Primary">
+        <a class="nav-link" href="#services" data-ve-edit="nav-services">Services</a>
+        <a class="nav-link" href="#calendar" data-ve-edit="nav-availability">Availability</a>
+        <a class="nav-link" href="#hero-discount" data-ve-edit="nav-hero-discount">Hero Discount</a>
+        <a class="nav-link" href="https://portal.valorwaveentertainment.com/request_information.asp?djidnumber=28542" data-ve-edit="nav-request-quote">Request a Quote</a>
+        <a
+          class="nav-link"
+          href="https://portal.valorwaveentertainment.com/clientlogon.asp?djidnumber=28542"
+          target="_blank"
+          rel="noopener"
+          data-ve-edit="nav-client-portal"
+        >
+          Client Portal
+        </a>
+
+        <div
+          class="social-links"
+          aria-label="Social links"
+          data-ve-edit="header-social-links"
+        >
+          <a href="https://www.facebook.com/valorwaveentertainment" target="_blank" rel="noopener" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+              <path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.4V12h2.4V9.8c0-2.4 1.4-3.7 3.6-3.7 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.4.7-1.4 1.4V12h2.5l-.4 2.9h-2.1v7A10 10 0 0 0 22 12z"/>
+            </svg>
+          </a>
+          <a href="https://www.instagram.com/valorwaveentertainment/" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+              <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z"/>
+            </svg>
+          </a>
+          <a href="https://x.com/ValorwaveEnt" target="_blank" rel="noopener" aria-label="X">
+            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+              <path d="M18.9 2H22l-7.3 8.3L23 22h-6.7l-5.2-6.7L4.9 22H2l7.8-9L1 2h6.8l4.7 6L18.9 2z"/>
+            </svg>
+          </a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <header class="hero" data-theme-scope="all">
+    <div class="hero-inner">
+      <h1 class="hero-h1" data-ve-edit="hero-h1">Wedding DJ in Chattanooga • Faith-Based Events</h1>
+      <img
+        class="hero-logo"
+        src="logo.png"
+        alt="Valor Wave Entertainment Logo"
+        data-ve-edit="hero-logo"
+      />
+      <div class="kicker" data-ve-edit="hero-kicker">Faith-Based DJ Services</div>
+      <div class="tagline" data-ve-edit="hero-tagline">Honoring Every Moment • Honoring All Heroes</div>
+      <div class="subline" data-ve-edit="hero-subline">Veteran-owned • Faith-based • Professional DJ services</div>
+      <a class="btn" href="https://portal.valorwaveentertainment.com/request_information.asp?djidnumber=28542" data-ve-edit="hero-cta">Request a Quote</a>
+    </div>
+  </header>
+
+  <!-- SERVICES -->
+  <section id="services" data-theme-scope="all">
+    <h2 data-ve-edit="services-heading">Services</h2>
+    <div class="grid">
+      <div class="card" data-ve-edit="service-card-1">
+        <img src="images/service-wedding.jpg" alt="Wedding DJ Services" data-ve-edit="service-card-1-image" />
+        <div class="card-body">
+          <h3 data-ve-edit="service-card-1-title">Wedding DJ Services</h3>
+          <p data-ve-edit="service-card-1-text">
+            Professional, faith-respectful wedding DJ services with clean music, structured timelines, and stress-free coordination.
+          </p>
+        </div>
+      </div>
+      <div class="card" data-ve-edit="service-card-2">
+        <img src="images/service-dj-mc.jpg" alt="DJ and MC Services" data-ve-edit="service-card-2-image" />
+        <div class="card-body">
+          <h3 data-ve-edit="service-card-2-title">DJ &amp; MC Services</h3>
+          <p data-ve-edit="service-card-2-text">
+            Confident MC presence, clear communication, and modern music tailored to your values and your guests.
+          </p>
+        </div>
+      </div>
+      <div class="card" data-ve-edit="service-card-3">
+        <img src="images/service-sound-lighting.jpg" alt="Sound and Lighting" data-ve-edit="service-card-3-image" />
+        <div class="card-body">
+          <h3 data-ve-edit="service-card-3-title">Sound &amp; Lighting</h3>
+          <p data-ve-edit="service-card-3-text">
+            High-quality audio and tasteful lighting designed to enhance your event without overwhelming it.
+          </p>
+        </div>
+      </div>
+      <div class="card" data-ve-edit="service-card-4">
+        <img src="images/service-corporate.jpg" alt="Corporate and Community Events" data-ve-edit="service-card-4-image" />
+        <div class="card-body">
+          <h3 data-ve-edit="service-card-4-title">Corporate &amp; Community Events</h3>
+          <p data-ve-edit="service-card-4-text">
+            Reliable, positive entertainment for corporate gatherings, churches, and community celebrations.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICE AREA -->
+  <section data-theme-scope="all">
+    <h2 data-ve-edit="service-area-heading">Serving Your Area</h2>
+    <p class="service-area" data-ve-edit="service-area-text">
+      Valor Wave Entertainment proudly serves weddings and events throughout <strong>Southeast Tennessee</strong>, including Chattanooga and Cleveland,
+      as well as <strong>Northwest Georgia</strong> communities such as Dalton, Ringgold, and Fort Oglethorpe. Travel outside these areas may be available upon request.
+    </p>
+  </section>
+
+  <!-- BIO -->
+  <section id="bio" data-theme-scope="all">
+    <h2 data-ve-edit="bio-heading">Meet the DJ</h2>
+    <div class="bio-wrap">
+      <div class="bio-head">
+        <img
+          class="bio-image"
+          src="images/dj-portrait-sam.jpg"
+          alt="Sam Massengale - Founder & DJ"
+          data-ve-edit="bio-image"
+        />
+        <div class="bio-name" data-ve-edit="bio-name">Sam Massengale – Founder &amp; DJ</div>
+      </div>
+      <p data-ve-edit="bio-text-1">
+        Hello! My name is <strong>Sam Massengale</strong>, and I’ve proudly called Chattanooga home my entire life. I served over 12 years in the
+        <strong>United States Army</strong> and hold a <strong>Master’s Degree from Belhaven University</strong>. I am blessed with a wonderful wife and four amazing boys.
+      </p>
+      <p data-ve-edit="bio-text-2">
+        Alongside my wife, I decided it was time to turn our passion for <strong>music and singing</strong> into something special — and that’s how
+        <strong>Valor Wave Entertainment</strong> was born. With over 12 years of DJ experience across weddings, corporate events, and community celebrations, I bring
+        professionalism, creativity, and heart to every event.
+      </p>
+      <p data-ve-edit="bio-text-3">
+        Guided by our loving Father and Jesus Christ, our mission is simple: to provide a <strong>worry-free, faith-based, unforgettable experience</strong>.
+        We look forward to honoring every moment — and all heroes — while creating memories that last a lifetime.
+      </p>
+    </div>
+  </section>
+
+  <!-- WEDDING DJ CHATTANOOGA -->
+  <section id="chattanooga-wedding-dj" data-theme-scope="all">
+    <h2 data-ve-edit="wedding-dj-heading">Wedding DJ Chattanooga</h2>
+    <p class="service-area" data-ve-edit="wedding-dj-intro">
+      Looking for a <strong>wedding DJ in Chattanooga</strong> who brings modern energy with faith-based values? Valor Wave Entertainment provides DJ + MC services,
+      sound, and lighting for weddings and events across <strong>Southeast Tennessee</strong> and <strong>Northwest Georgia</strong>.
+      We focus on clear communication, clean music options, and a smooth, stress-free experience from ceremony to last dance.
+    </p>
+
+    <div class="grid" style="margin-top:26px;">
+      <div class="card" data-ve-edit="wedding-dj-card-1"><div class="card-body">
+        <h3 data-ve-edit="wedding-dj-card-1-title">What you get</h3>
+        <p data-ve-edit="wedding-dj-card-1-text">
+          Professional planning, timeline support, reliable equipment, and a confident MC—so your day stays on track.
+        </p>
+      </div></div>
+      <div class="card" data-ve-edit="wedding-dj-card-2"><div class="card-body">
+        <h3 data-ve-edit="wedding-dj-card-2-title">Where we serve</h3>
+        <p data-ve-edit="wedding-dj-card-2-text">
+          Chattanooga, Cleveland, Hixson, and nearby communities—plus Northwest GA including Ringgold, Fort Oglethorpe, and Dalton.
+        </p>
+      </div></div>
+      <div class="card" data-ve-edit="wedding-dj-card-3"><div class="card-body">
+        <h3 data-ve-edit="wedding-dj-card-3-title">Faith-based option</h3>
+        <p data-ve-edit="wedding-dj-card-3-text">
+          We can tailor music to your preferences and venue guidelines while keeping the atmosphere fun and welcoming.
+        </p>
+      </div></div>
+    </div>
+
+    <div class="bio-wrap" style="margin-top:26px;">
+      <div class="bio-name" style="margin-bottom:10px;" data-ve-edit="faq-heading">FAQ</div>
+      <p data-ve-edit="faq-1">
+        <strong>How far in advance should we book?</strong><br>
+        For peak wedding season, we recommend reaching out as early as possible to secure your date.
+      </p>
+      <p data-ve-edit="faq-2">
+        <strong>Do you travel outside Chattanooga?</strong><br>
+        Yes—Southeast Tennessee and Northwest Georgia are our core service areas, and extended travel is available upon request.
+      </p>
+      <p data-ve-edit="faq-3">
+        <strong>Can you keep music clean/family-friendly?</strong><br>
+        Absolutely. We can customize playlists to match your values and your guest list.
+      </p>
+    </div>
+  </section>
+
+  <!-- BRAND MEANING -->
+  <section id="brand-meaning" data-theme-scope="all">
+    <h2 data-ve-edit="brand-meaning-heading">The Meaning Behind Valor Wave Entertainment</h2>
+    <div class="bio-wrap">
+      <p data-ve-edit="brand-meaning-1">
+        <strong>Valor Wave Entertainment</strong> represents the powerful blend of <strong>honor, service, and celebration</strong>.
+        <em>Valor</em> reflects courage, sacrifice, and respect for those who serve — our military, veterans, first responders,
+        healthcare workers, educators, and everyday heroes in our communities.
+      </p>
+      <p data-ve-edit="brand-meaning-2">
+        The word <em>Wave</em> symbolizes movement, energy, and the moments that bring people together.
+        Just like a wave, music carries emotion, creates connection, and leaves a lasting impact long after the event ends.
+      </p>
+      <p data-ve-edit="brand-meaning-3">
+        Together, <strong>Valor Wave Entertainment</strong> stands for honoring what matters most while creating unforgettable,
+        joy-filled experiences — all delivered with professionalism, integrity, and faith-based values.
+      </p>
+    </div>
+  </section>
+  
+  <!-- HERO DISCOUNT -->
+  <section id="hero-discount" data-theme-scope="all">
+    <h2 data-ve-edit="hero-discount-heading">Hero Discount</h2>
+    <div class="bio-wrap">
+      <div class="bio-name" style="text-align:center;margin-bottom:10px;" data-ve-edit="hero-discount-subheading">We Honor All Heroes</div>
+      <p style="text-align:center;" data-ve-edit="hero-discount-text-1">
+        We proudly offer a <strong>Hero Discount</strong> for <strong>active-duty military, veterans, first responders, healthcare workers, and teachers</strong>.
+        Mention it in your quote request and we’ll apply it to qualifying events.
+      </p>
+      <p
+        style="text-align:center;color:var(--gray);font-size:14px;margin-top:10px;"
+        data-ve-edit="hero-discount-text-2"
+      >
+        Proof of service may be requested. Discount amount varies by package and date availability.
+      </p>
+    </div>
+  </section>
+
+  <!-- AVAILABILITY CALENDAR -->
+  <section id="calendar" data-theme-scope="all">
+    <h2 data-ve-edit="calendar-heading">Availability Calendar</h2>
+    <p
+      class="service-area"
+      style="text-align:center;"
+      data-ve-edit="calendar-intro"
+    >
+      View our availability and request your date. If you don’t see your date listed, submit a quote request and we’ll confirm promptly.
+    </p>
+
+    <div class="bio-wrap" style="margin-top:18px;">
+      <p
+        style="text-align:center;margin-bottom:14px;color:var(--gray);font-size:14px;"
+        data-ve-edit="calendar-note"
+      >
+        Note: For this calendar to display, the Valor Wave Entertainment Google Calendar must be shared publicly (or shared with anyone who has the link).
+      </p>
+      <div style="border-radius:14px;overflow:hidden;border:1px solid var(--border);">
+        <iframe
+          title="Valor Wave Entertainment Availability Calendar"
+          src="https://calendar.google.com/calendar/embed?src=valorwaveentertainment%40gmail.com&ctz=America%2FNew_York"
+          style="border:0;width:100%;height:640px;background:white;"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;">
+        <a
+          class="btn"
+          href="https://calendar.app.google/9MS5C8rhqfmR3aqM7"
+          target="_blank"
+          rel="noopener"
+          data-ve-edit="calendar-button"
+        >
+          Open Calendar
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBMIT TESTIMONIAL -->
+  <section id="submit-testimonial" data-theme-scope="all">
+    <h2 data-ve-edit="testimonial-form-heading">Submit a Testimonial</h2>
+    <form
+      action="https://formsubmit.co/valorwaveentertainment@gmail.com"
+      method="POST"
+      class="testimonial-form"
+    >
+      <input type="hidden" name="_subject" value="New Testimonial Submission - Valor Wave Entertainment">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_next" value="https://valorwaveentertainment.com/testimonial-thank-you.html">
+
+      <input type="text" name="client_name" placeholder="Your Name" required data-ve-edit="testimonial-form-name">
+      <input type="email" name="client_email" placeholder="Your Email (optional)" data-ve-edit="testimonial-form-email">
+      <input type="text" name="event_type" placeholder="Event Type (Wedding, Birthday, Corporate, etc.)" required data-ve-edit="testimonial-form-event-type">
+      <input type="date" name="event_date" placeholder="Event Date" data-ve-edit="testimonial-form-date">
+      <select
+        name="rating"
+        required
+        style="padding:14px;border-radius:10px;border:1px solid #0b1220;background:rgba(248,250,252,0.92);font-size:16px;color:#0b1220;"
+      >
+        <option value="" selected disabled>Rating</option>
+        <option>5 - Excellent</option>
+        <option>4 - Great</option>
+        <option>3 - Good</option>
+        <option>2 - Fair</option>
+        <option>1 - Poor</option>
+      </select>
+      <textarea name="testimonial" placeholder="Write your testimonial here..." required data-ve-edit="testimonial-form-message"></textarea>
+      <label style="display:block;color:var(--gray);font-size:14px;line-height:1.4;" data-ve-edit="testimonial-form-permission">
+        <input type="checkbox" name="permission" value="Yes" required>
+        I give Valor Wave Entertainment permission to use my testimonial on the website.
+      </label>
+
+      <div class="form-actions">
+        <button type="submit" class="btn" data-ve-edit="testimonial-form-submit">Send Testimonial</button>
+      </div>
+
+      <p
+        style="margin-top:12px;color:var(--gray);font-size:13px;text-align:center;"
+        data-ve-edit="testimonial-form-footer"
+      >
+        Thank you—your feedback helps future couples and clients book with confidence.
+      </p>
+    </form>
+  </section>
+
+  <!-- WHAT OUR CLIENTS SAY (SCROLLABLE TESTIMONIALS) -->
+  <section data-theme-scope="all">
+    <h2 data-ve-edit="testimonial-heading">What Our Clients Say</h2>
+    <div class="testimonial-scroll">
+      <div class="card" data-ve-edit="testimonial-1"><div class="card-body">
+        <p data-ve-edit="testimonial-1-text">
+          "Valor Wave Entertainment made our wedding absolutely perfect. Professional, faith-centered, and fun!"
+        </p>
+        <strong data-ve-edit="testimonial-1-author">- Sarah M.</strong>
+      </div></div>
+      <div class="card" data-ve-edit="testimonial-2"><div class="card-body">
+        <p data-ve-edit="testimonial-2-text">
+          "Sam was incredible. From ceremony to reception, everything was smooth and stress-free."
+        </p>
+        <strong data-ve-edit="testimonial-2-author">- James &amp; Emily</strong>
+      </div></div>
+      <div class="card" data-ve-edit="testimonial-3"><div class="card-body">
+        <p data-ve-edit="testimonial-3-text">
+          "Highly recommend for church and community events. Clean music and great energy."
+        </p>
+        <strong data-ve-edit="testimonial-3-author">- Pastor David R.</strong>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer data-theme-scope="all">
+    <img
+      src="logo.png"
+      alt="Valor Wave Entertainment Logo"
+      data-ve-edit="footer-logo"
+    />
+    <p data-ve-edit="footer-line-1">© 2026 Valor Wave Entertainment</p>
+    <p data-ve-edit="footer-line-2">Faith-Based Wedding &amp; Event DJ | Southeast TN &amp; Northwest GA</p>
+    <p data-ve-edit="footer-line-3">
+      Phone: (423) 680-2700 • Email:
+      <a href="mailto:valorwaveentertainment@gmail.com">valorwaveentertainment@gmail.com</a>
+    </p>
+    <p data-ve-edit="footer-line-4">Address: 5424 School Dr, Hixson, TN 37343</p>
+
+    <div
+      class="social-links footer-social"
+      aria-label="Social links"
+      style="justify-content:center;margin-top:16px;"
+      data-ve-edit="footer-social-links"
+    >
+      <a href="https://www.facebook.com/valorwaveentertainment" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.4V12h2.4V9.8c0-2.4 1.4-3.7 3.6-3.7 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.4.7-1.4 1.4V12h2.5l-.4 2.9h-2.1v7A10 10 0 0 0 22 12z"/>
+        </svg>
+      </a>
+      <a href="https://www.instagram.com/valorwaveentertainment/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z"/>
+        </svg>
+      </a>
+      <a href="https://x.com/ValorwaveEnt" target="_blank" rel="noopener" aria-label="X">
+        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+          <path d="M18.9 2H22l-7.3 8.3L23 22h-6.7l-5.2-6.7L4.9 22H2l7.8-9L1 2h6.8l4.7 6L18.9 2z"/>
+        </svg>
+      </a>
+    </div>
+  </footer>
+
+<script src="/js/cms-loader.js"></script>
+</body>
+</html>
+
