@@ -17,7 +17,6 @@
 
   "header-logo": "images/mini-logo.png",
   "header-brand-text": "Valor Wave Entertainment",
-
   "header-social-links": "",
 
   "services-heading": "Services",
@@ -96,10 +95,8 @@
 
   "testimonial-1-text": "\"Valor Wave Entertainment made our wedding absolutely perfect. Professional, faith-centered, and fun!\"",
   "testimonial-1-author": "- Sarah M.",
-
   "testimonial-2-text": "\"Sam was incredible. From ceremony to reception, everything was smooth and stress-free.\"",
   "testimonial-2-author": "- James & Emily",
-
   "testimonial-3-text": "\"Highly recommend for church and community events. Clean music and great energy.\"",
   "testimonial-3-author": "- Pastor David R.",
 
@@ -110,13 +107,11 @@
   "footer-line-4": "Address: 5424 School Dr, Hixson, TN 37343",
   "footer-social-links": "",
 
-"meta_title": "Wedding DJ in Chattanooga • Faith-Based Events",
-"meta_description": "Veteran-owned, faith-based professional DJ services serving Chattanooga and surrounding areas. Honoring every moment and all heroes.",
-"meta_keywords": "",
-
-"og_title": "Wedding DJ in Chattanooga • Faith-Based Events",
-"og_description": "Veteran-owned, faith-based professional DJ services serving Chattanooga and surrounding areas.",
-"og_image": "og-image.jpg",
-
-"google_analytics_id": "G-PPBLPGS51B"
+  "meta_title": "Wedding DJ in Chattanooga • Faith-Based Events",
+  "meta_description": "Veteran-owned, faith-based professional DJ services serving Chattanooga and surrounding areas. Honoring every moment and all heroes.",
+  "meta_keywords": "",
+  "og_title": "Wedding DJ in Chattanooga • Faith-Based Events",
+  "og_description": "Veteran-owned, faith-based professional DJ services serving Chattanooga and surrounding areas.",
+  "og_image": "og-image.jpg",
+  "google_analytics_id": "G-PPBLPGS51B"
 }
