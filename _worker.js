@@ -76,7 +76,7 @@ export default {
       return new Response(null, {
         status: 302,
         headers: {
-          "Location": "https://admin.valorwaveentertainment.com/admin/admin.html",
+          "Location": "https://admin.valorwaveentertainment.com/admin/index.html",
           "Set-Cookie": `cms_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/`
         }
       });
