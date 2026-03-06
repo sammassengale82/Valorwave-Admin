@@ -1,6 +1,6 @@
 {
   "hero-h1": "Wedding DJ in Chattanooga • Faith-Based Events",
-  "hero-logo": "logo.png",
+  "hero-logo": "/logo.png",
   "hero-kicker": "Faith-Based DJ Services",
   "hero-tagline": "Honoring Every Moment • Honoring All Heroes",
   "hero-subline": "Veteran-owned • Faith-based • Professional DJ services",
@@ -15,25 +15,25 @@
   "nav-client-portal": "Client Portal",
   "nav-client-portal__href": "https://portal.valorwaveentertainment.com/clientlogon.asp?djidnumber=28542",
 
-  "header-logo": "images/mini-logo.png",
+  "header-logo": "/images/mini-logo.png",
   "header-brand-text": "Valor Wave Entertainment",
   "header-social-links": "",
 
   "services-heading": "Services",
 
-  "service-card-1-image": "images/service-wedding.jpg",
+  "service-card-1-image": "/images/service-wedding.jpg",
   "service-card-1-title": "Wedding DJ Services",
   "service-card-1-text": "Professional, faith-respectful wedding DJ services with clean music, structured timelines, and stress-free coordination.",
 
-  "service-card-2-image": "images/service-dj-mc.jpg",
+  "service-card-2-image": "/images/service-dj-mc.jpg",
   "service-card-2-title": "DJ & MC Services",
   "service-card-2-text": "Confident MC presence, clear communication, and modern music tailored to your values and your guests.",
 
-  "service-card-3-image": "images/service-sound-lighting.jpg",
+  "service-card-3-image": "/images/service-sound-lighting.jpg",
   "service-card-3-title": "Sound & Lighting",
   "service-card-3-text": "High-quality audio and tasteful lighting designed to enhance your event without overwhelming it.",
 
-  "service-card-4-image": "images/service-corporate.jpg",
+  "service-card-4-image": "/images/service-corporate.jpg",
   "service-card-4-title": "Corporate & Community Events",
   "service-card-4-text": "Reliable, positive entertainment for corporate gatherings, churches, and community celebrations.",
 
@@ -41,7 +41,7 @@
   "service-area-text": "Valor Wave Entertainment proudly serves weddings and events throughout <strong>Southeast Tennessee</strong>, including Chattanooga and Cleveland, as well as <strong>Northwest Georgia</strong> communities such as Dalton, Ringgold, and Fort Oglethorpe. Travel outside these areas may be available upon request.",
 
   "bio-heading": "Meet the DJ",
-  "bio-image": "images/dj-portrait-sam.jpg",
+  "bio-image": "/images/dj-portrait-sam.jpg",
   "bio-name": "Sam Massengale – Founder & DJ",
 
   "bio-text-1": "Hello! My name is <strong>Sam Massengale</strong>, and I’ve proudly called Chattanooga home my entire life. I served over 12 years in the <strong>United States Army</strong> and hold a <strong>Master’s Degree from Belhaven University</strong>. I am blessed with a wonderful wife and four amazing boys.",
@@ -100,7 +100,7 @@
   "testimonial-3-text": "\"Highly recommend for church and community events. Clean music and great energy.\"",
   "testimonial-3-author": "- Pastor David R.",
 
-  "footer-logo": "logo.png",
+  "footer-logo": "/logo.png",
   "footer-line-1": "© 2026 Valor Wave Entertainment",
   "footer-line-2": "Faith-Based Wedding & Event DJ | Southeast TN & Northwest GA",
   "footer-line-3": "Phone: (423) 680-2700 • Email: <a href=\"mailto:valorwaveentertainment@gmail.com\">valorwaveentertainment@gmail.com</a>",
@@ -112,6 +112,6 @@
   "meta_keywords": "",
   "og_title": "Wedding DJ in Chattanooga • Faith-Based Events",
   "og_description": "Veteran-owned, faith-based professional DJ services serving Chattanooga and surrounding areas.",
-  "og_image": "og-image.jpg",
+  "og_image": "/og-image.jpg",
   "google_analytics_id": "G-PPBLPGS51B"
 }
