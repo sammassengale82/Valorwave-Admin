@@ -1,8 +1,20 @@
 /* ============================================================
+   CONFIG — CMS API BASE (Worker)
+   ============================================================ */
+const CMS_API_BASE = "https://cms.valorwaveentertainment.com";
+
+const DRAFT_URL = `${CMS_API_BASE}/draft.json`;
+const PUBLISH_URL = `${CMS_API_BASE}/publish.json`;
+const CMS_THEME_URL = `${CMS_API_BASE}/cms-theme.txt`;
+const SITE_THEME_URL = `${CMS_API_BASE}/site-theme.txt`;
+const UPLOAD_URL = `${CMS_API_BASE}/upload`;
+const LOGOUT_URL = `${CMS_API_BASE}/auth/logout`;
+
+/* ============================================================
    SESSION CHECK (GitHub OAuth)
    ============================================================ */
 async function checkSession() {
-  const res = await fetch("https://admin.valorwaveentertainment.com/draft.json", {
+  const res = await fetch(DRAFT_URL, {
     method: "GET",
     credentials: "include"
   });
@@ -179,7 +191,7 @@ let cmsData = {};
    LOAD DRAFT.JSON (FROM WORKER)
    ============================================================ */
 async function loadDraft() {
-  const res = await fetch("https://admin.valorwaveentertainment.com/draft.json", {
+  const res = await fetch(DRAFT_URL, {
     credentials: "include"
   });
 
@@ -291,10 +303,10 @@ function attachListeners() {
       const form = new FormData();
       form.append("file", file);
 
-      const res = await fetch("https://admin.valorwaveentertainment.com/upload", {
-        method: "POST",
-        credentials: "include",
-        body: form
+      const res = await fetch(`${UPLOAD_URL}/${file.name}`, {
+        method: "PUT",
+        body: file,
+        credentials: "include"
       });
 
       const json = await res.json();
@@ -309,7 +321,7 @@ function attachListeners() {
    SAVE DRAFT
    ============================================================ */
 document.getElementById("saveDraft").onclick = async () => {
-  await fetch("https://admin.valorwaveentertainment.com/draft.json", {
+  await fetch(DRAFT_URL, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -323,8 +335,8 @@ document.getElementById("saveDraft").onclick = async () => {
    PUBLISH
    ============================================================ */
 document.getElementById("publish").onclick = async () => {
-  await fetch("https://admin.valorwaveentertainment.com/publish", {
-    method: "POST",
+  await fetch(PUBLISH_URL, {
+    method: "PUT",
     credentials: "include"
   });
 
@@ -335,7 +347,7 @@ document.getElementById("publish").onclick = async () => {
    LOGOUT
    ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
-  await fetch("https://admin.valorwaveentertainment.com/auth/logout", {
+  await fetch(LOGOUT_URL, {
     method: "GET",
     credentials: "include"
   });
