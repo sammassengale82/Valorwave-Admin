@@ -1,296 +1,187 @@
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const path = url.pathname.toLowerCase();
+    const path = url.pathname;
 
-    // --- AUTH PROTECTION ---
-    const protectedRoutes = [
-      "draft.json",
-      "publish.json",
-      "publish",
-      "upload"
-    ];
+    /* ============================================================
+       CORS
+       ============================================================ */
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "https://admin.valorwaveentertainment.com",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    };
 
-    const needsAuth = protectedRoutes.some(r => path.includes(r));
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
 
-    if (needsAuth) {
-      const session = getSession(request, env);
-      if (!session) {
-        return new Response("Unauthorized", {
-          status: 401,
-          headers: { "Access-Control-Allow-Origin": "*" }
+    /* ============================================================
+       D1 HELPERS
+       ============================================================ */
+    async function getValue(key, fallback = "") {
+      const row = await env.DB.prepare(
+        "SELECT value FROM cms WHERE key = ?"
+      ).bind(key).first();
+      return row?.value ?? fallback;
+    }
+
+    async function setValue(key, value) {
+      await env.DB.prepare(
+        "INSERT INTO cms (key, value) VALUES (?, ?) " +
+        "ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+      ).bind(key, value).run();
+    }
+
+    function json(data, status = 200) {
+      return new Response(JSON.stringify(data), {
+        status,
+        headers: { "Content-Type": "application/json", ...corsHeaders }
+      });
+    }
+
+    /* ============================================================
+       DRAFT.JSON
+       ============================================================ */
+    if (path === "/draft.json") {
+      if (request.method === "GET") {
+        const value = await getValue("draft", "{}");
+        return new Response(value, {
+          headers: { "Content-Type": "application/json", ...corsHeaders }
         });
       }
-    }
 
-    // --- OAUTH LOGIN ---
-    if (path === "/oauth/login") {
-      const state = crypto.randomUUID();
-      const redirect = `https://github.com/login/oauth/authorize?client_id=${env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.CALLBACK_URL)}&scope=repo&state=${state}`;
-
-      return Response.redirect(redirect, 302);
-    }
-
-    // --- OAUTH CALLBACK ---
-    if (path === "/oauth/callback") {
-      const code = url.searchParams.get("code");
-
-      if (!code) {
-        return new Response("Missing code", { status: 400 });
+      if (request.method === "PUT") {
+        const body = await request.text();
+        await setValue("draft", body);
+        return json({ saved: true });
       }
 
-      // Exchange code for token
-      const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+    }
+
+    /* ============================================================
+       PUBLISH.JSON
+       ============================================================ */
+    if (path === "/publish.json") {
+      if (request.method === "GET") {
+        const value = await getValue("publish", "{}");
+        return new Response(value, {
+          headers: { "Content-Type": "application/json", ...corsHeaders }
+        });
+      }
+
+      if (request.method === "PUT") {
+        const body = await request.text();
+        await setValue("publish", body);
+        return json({ published: true });
+      }
+
+      return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+    }
+
+    /* ============================================================
+       CMS THEME
+       ============================================================ */
+    if (path === "/cms-theme.txt") {
+      if (request.method === "GET") {
+        const value = await getValue("cms_theme", "");
+        return new Response(value, {
+          headers: { "Content-Type": "text/plain", ...corsHeaders }
+        });
+      }
+
+      if (request.method === "PUT") {
+        const body = await request.text();
+        await setValue("cms_theme", body);
+        return new Response("OK", { headers: corsHeaders });
+      }
+
+      return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+    }
+
+    /* ============================================================
+       SITE THEME
+       ============================================================ */
+    if (path === "/site-theme.txt") {
+      if (request.method === "GET") {
+        const value = await getValue("site_theme", "");
+        return new Response(value, {
+          headers: { "Content-Type": "text/plain", ...corsHeaders }
+        });
+      }
+
+      if (request.method === "PUT") {
+        const body = await request.text();
+        await setValue("site_theme", body);
+        return new Response("OK", { headers: corsHeaders });
+      }
+
+      return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+    }
+
+    /* ============================================================
+       IMAGE UPLOAD → GITHUB
+       ============================================================ */
+    if (path.startsWith("/upload")) {
+      if (request.method !== "PUT" && request.method !== "POST") {
+        return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+      }
+
+      const filename = path.replace("/upload/", "").trim();
+      if (!filename) {
+        return new Response("Missing filename", { status: 400, headers: corsHeaders });
+      }
+
+      const owner = env.GITHUB_OWNER;
+      const repo = env.GITHUB_REPO;
+      const branch = env.GITHUB_BRANCH || "main";
+      const token = env.GITHUB_TOKEN;
+
+      if (!owner || !repo || !token) {
+        return new Response("GitHub not configured", { status: 500, headers: corsHeaders });
+      }
+
+      const bytes = await request.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(bytes)));
+
+      const githubPath = `images/uploads/${filename}`;
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${githubPath}`;
+
+      const ghRes = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Accept": "application/vnd.github+json"
+        },
         body: JSON.stringify({
-          client_id: env.GITHUB_CLIENT_ID,
-          client_secret: env.GITHUB_CLIENT_SECRET,
-          code,
-          redirect_uri: env.CALLBACK_URL
+          message: `Upload image ${filename}`,
+          content: base64,
+          branch
         })
       });
 
-      const tokenJson = await tokenRes.json();
-      const accessToken = tokenJson.access_token;
-
-      if (!accessToken) {
-        return new Response("OAuth failed", { status: 401 });
+      if (!ghRes.ok) {
+        const text = await ghRes.text();
+        return new Response(`GitHub error: ${text}`, {
+          status: 500,
+          headers: corsHeaders
+        });
       }
 
-      // Fetch GitHub user
-      const userRes = await fetch("https://api.github.com/user", {
-        headers: { "Authorization": `Bearer ${accessToken}` }
-      });
+      const ghJson = await ghRes.json();
+      const rawUrl =
+        ghJson.content?.download_url ||
+        `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${githubPath}`;
 
-      const user = await userRes.json();
-
-      // Validate GitHub username
-      if (user.login !== env.GITHUB_OWNER) {
-        return new Response("Forbidden", { status: 403 });
-      }
-
-      // Create session cookie
-      const sessionToken = await createSession(env, user.login);
-
-      return new Response(null, {
-        status: 302,
-        headers: {
-          "Location": "https://admin.valorwaveentertainment.com/admin/index.html",
-          "Set-Cookie": `cms_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/`
-        }
-      });
+      return json({ url: rawUrl });
     }
 
-    // --- LOGOUT ---
-    if (path === "/auth/logout") {
-      return new Response("Logged out", {
-        status: 200,
-        headers: {
-          "Set-Cookie": "cms_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0"
-        }
-      });
-    }
-
-    // --- CORS ---
-    if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: cors() });
-    }
-
-    // --- GET draft.json ---
-    if (path.includes("draft.json") && request.method === "GET") {
-      return getFile(env, "draft.json");
-    }
-
-    // --- PUT draft.json (SYNC TO BOTH REPOS) ---
-    if (path.includes("draft.json") && request.method === "PUT") {
-      return putFile(request, env, "draft.json");
-    }
-
-    // --- GET publish.json ---
-    if (path.includes("publish.json") && request.method === "GET") {
-      return getFile(env, "publish.json");
-    }
-
-    // --- PUT publish.json (SYNC TO BOTH REPOS) ---
-    if (path.includes("publish.json") && request.method === "PUT") {
-      return putFile(request, env, "publish.json");
-    }
-
-    // --- PUBLISH (COPY draft → publish IN BOTH REPOS) ---
-    if (path.includes("publish") && request.method === "POST") {
-      return publish(env);
-    }
-
-    // --- IMAGE UPLOAD ---
-    if (path.includes("upload") && request.method === "POST") {
-      return upload(request, env);
-    }
-
-    return new Response("Not Found", { status: 404, headers: cors() });
+    /* ============================================================
+       FALLBACK
+       ============================================================ */
+    return new Response("Not Found", { status: 404, headers: corsHeaders });
   }
 };
-
-// ============================================================
-// SESSION HELPERS
-// ============================================================
-
-async function createSession(env, username) {
-  const data = JSON.stringify({ username, ts: Date.now() });
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(env.ADMIN_SESSION),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data));
-  const signature = btoa(String.fromCharCode(...new Uint8Array(sig)));
-
-  return btoa(data) + "." + signature;
-}
-
-function getSession(request, env) {
-  const cookie = request.headers.get("Cookie") || "";
-  const match = cookie.match(/cms_session=([^;]+)/);
-  if (!match) return null;
-
-  const [dataB64, sig] = match[1].split(".");
-  if (!dataB64 || !sig) return null;
-
-  const data = atob(dataB64);
-
-  return JSON.parse(data);
-}
-
-// ============================================================
-// GITHUB FILE HELPERS (NEW)
-// ============================================================
-
-async function readFromRepo(env, repo, filename) {
-  const url = `https://api.github.com/repos/${env.GITHUB_OWNER}/${repo}/contents/${filename}`;
-
-  const res = await fetch(url, {
-    headers: {
-      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
-      "Accept": "application/vnd.github+json"
-    }
-  });
-
-  if (!res.ok) throw new Error("Failed to read " + filename);
-
-  const json = await res.json();
-  return atob(json.content);
-}
-
-async function writeToRepo(env, repo, filename, content) {
-  const url = `https://api.github.com/repos/${env.GITHUB_OWNER}/${repo}/contents/${filename}`;
-
-  // Check if file exists to get SHA
-  const existing = await fetch(url, {
-    headers: {
-      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
-      "Accept": "application/vnd.github+json"
-    }
-  });
-
-  let sha = null;
-  if (existing.ok) {
-    const json = await existing.json();
-    sha = json.sha;
-  }
-
-  const payload = {
-    message: `Update ${filename}`,
-    content: btoa(content),
-    sha
-  };
-
-  const putRes = await fetch(url, {
-    method: "PUT",
-    headers: {
-      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
-      "Accept": "application/vnd.github+json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!putRes.ok) {
-    const err = await putRes.text();
-    throw new Error("GitHub write failed: " + err);
-  }
-}
-
-// ============================================================
-// CMS FILE ROUTES (UPDATED FOR DUAL-REPO SYNC)
-// ============================================================
-
-async function getFile(env, filename) {
-  const content = await readFromRepo(env, env.GITHUB_ADMIN_REPO, filename);
-  return new Response(content, { status: 200, headers: cors() });
-}
-
-async function putFile(request, env, filename) {
-  const body = await request.text();
-
-  // Write to both repos
-  await writeToRepo(env, env.GITHUB_ADMIN_REPO, filename, body);
-  await writeToRepo(env, env.GITHUB_WEBSITE_REPO, filename, body);
-
-  return new Response("OK", { status: 200, headers: cors() });
-}
-
-async function publish(env) {
-  // Load draft.json from admin repo
-  const draft = await readFromRepo(env, env.GITHUB_ADMIN_REPO, "draft.json");
-
-  // Write publish.json to both repos
-  await writeToRepo(env, env.GITHUB_ADMIN_REPO, "publish.json", draft);
-  await writeToRepo(env, env.GITHUB_WEBSITE_REPO, "publish.json", draft);
-
-  return new Response("Published", { status: 200, headers: cors() });
-}
-
-// ============================================================
-// IMAGE UPLOAD (UNCHANGED)
-// ============================================================
-
-async function upload(request, env) {
-  const form = await request.formData();
-  const file = form.get("file");
-
-  if (!file) {
-    return new Response("No file", { status: 400 });
-  }
-
-  const arrayBuffer = await file.arrayBuffer();
-
-  const uploadRes = await fetch(env.IMAGE_UPLOAD_URL, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${env.IMAGE_UPLOAD_TOKEN}`
-    },
-    body: arrayBuffer
-  });
-
-  const json = await uploadRes.json();
-
-  return new Response(JSON.stringify(json), {
-    status: 200,
-    headers: { "Content-Type": "application/json", ...cors() }
-  });
-}
-
-// ============================================================
-// CORS
-// ============================================================
-
-function cors() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization"
-  };
-}
